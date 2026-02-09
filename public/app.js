@@ -1,5 +1,5 @@
 const WORKER_URL = 'https://finance.learningis1.st';
-const REFRESH_RATE = 1000; 
+const REFRESH_RATE = 1000;
 
 let grid = null;
 let symbolList = [];
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
         float: true,
         cellHeight: 100,
         minRow: 1,
-        margin: 10, 
+        margin: 10,
         column: 12,
         disableOneColumnMode: true
     });
@@ -78,11 +78,11 @@ function addSymbolWidget(symbol, node = null) {
     `;
 
     const options = node || { w: 3, h: 2, x: 0, y: 0 };
-    
+
     grid.addWidget({
         ...options,
         content: widgetHtml,
-        id: symbol 
+        id: symbol
     });
 
     saveState();
@@ -102,12 +102,12 @@ window.editTicker = function(oldSymbol, el) {
     input.type = 'text';
     input.value = oldSymbol;
     input.className = 'bg-gray-700 text-white responsive-symbol font-bold w-[50cqmin] px-1 rounded border border-blue-500 uppercase focus:outline-none';
-    
+
     const parent = el.parentNode;
-    
+
     const finish = () => {
         const newSymbol = input.value.trim().toUpperCase();
-        
+
         // If cancelled, empty, or unchanged -> Revert to text
         if (!newSymbol || newSymbol === oldSymbol) {
             parent.replaceChild(el, input);
@@ -125,18 +125,18 @@ window.editTicker = function(oldSymbol, el) {
         // 1. Get geometry of current widget
         const widgetEl = document.getElementById(`widget-${oldSymbol}`).closest('.grid-stack-item');
         const node = widgetEl.gridstackNode;
-        
+
         if (node) {
             const options = { x: node.x, y: node.y, w: node.w, h: node.h };
-            
+
             // 2. Remove old widget logic
             grid.removeWidget(widgetEl);
             symbolList = symbolList.filter(s => s !== oldSymbol);
             delete previousPrices[oldSymbol]; // Cleanup old symbol history
-            
+
             // 3. Add new widget with same geometry
             addSymbolWidget(newSymbol, options);
-            
+
             // 4. Trigger fetch immediately
             fetchData();
         } else {
@@ -187,15 +187,15 @@ function updateUI(data) {
 
         if (priceEl && chgEl && pctEl) {
             const currentPrice = quote.lastPrice;
-            
+
             // Check for price change and trigger flash
             const oldPrice = previousPrices[symbol];
             if (oldPrice !== undefined && currentPrice !== oldPrice) {
                 // Remove existing classes to reset animation if it's currently running
                 priceEl.classList.remove('flash-up', 'flash-down');
-                
+
                 // Force reflow
-                void priceEl.offsetWidth; 
+                void priceEl.offsetWidth;
 
                 // Add new class based on direction
                 if (currentPrice > oldPrice) {
@@ -209,7 +209,7 @@ function updateUI(data) {
                     priceEl.classList.remove('flash-up', 'flash-down');
                 }, 700);
             }
-            
+
             // Update state
             previousPrices[symbol] = currentPrice;
 
@@ -219,12 +219,22 @@ function updateUI(data) {
             pctEl.innerText = (quote.netPercentChange > 0 ? '+' : '') + quote.netPercentChange.toFixed(2) + '%';
 
             // Update Static Colors (Daily Change)
-            const colorClass = quote.netChange >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]';
-            
             [priceEl, chgEl, pctEl].forEach(el => {
                 el.classList.remove('text-[#4ade80]', 'text-[#f87171]', 'text-gray-300', 'text-gray-500');
-                el.classList.add(colorClass);
             });
+
+            if (quote.netChange > 0) {
+                // Positive: Green
+                [priceEl, chgEl, pctEl].forEach(el => el.classList.add('text-[#4ade80]'));
+            } else if (quote.netChange < 0) {
+                // Negative: Red
+                [priceEl, chgEl, pctEl].forEach(el => el.classList.add('text-[#f87171]'));
+            } else {
+                // Unchanged: Restore default grays
+                priceEl.classList.add('text-gray-300');
+                chgEl.classList.add('text-gray-500');
+                pctEl.classList.add('text-gray-500');
+            }
         }
     });
 }
@@ -233,7 +243,7 @@ function saveState() {
     const layout = [];
     grid.engine.nodes.forEach(node => {
         layout.push({
-            symbol: node.id, 
+            symbol: node.id,
             x: node.x, y: node.y, w: node.w, h: node.h
         });
     });
