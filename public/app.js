@@ -77,7 +77,7 @@ function addSymbolWidget(symbol, node = null) {
         </div>
     `;
 
-    const options = node || { w: 3, h: 2, x: 0, y: 0 };
+    const options = node || { w: 3, h: 2, autoPosition: true };
 
     grid.addWidget({
         ...options,
