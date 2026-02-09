@@ -68,7 +68,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
                 const headers = new Headers();
                 headers.append("Location", "/");
-                headers.append("Set-Cookie", `auth_session=${sessionCookieValue}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=3600`);
+                headers.append("Set-Cookie", `auth_session=${sessionCookieValue}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=3600`);
 
                 return new Response(null, {
                     status: 303,
