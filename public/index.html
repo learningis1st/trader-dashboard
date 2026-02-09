@@ -37,6 +37,28 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1a1a1a; }
         ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+        .widget-container {
+            container-type: size;
+        }
+
+        .responsive-symbol {
+            /* Scales with container, but never smaller than 14px or larger than 100px */
+            font-size: clamp(14px, 15cqmin, 100px);
+            line-height: 1.2;
+        }
+
+        .responsive-price {
+            /* Main price is larger, approx 30% of the smallest dimension */
+            font-size: clamp(24px, 30cqmin, 200px);
+            line-height: 1;
+        }
+
+        .responsive-detail {
+            /* Smaller details */
+            font-size: clamp(10px, 10cqmin, 60px);
+            line-height: 1.2;
+        }
     </style>
 </head>
 <body class="h-screen w-screen overflow-hidden">
@@ -113,9 +135,9 @@
             symbolList.push(symbol);
 
             const widgetHtml = `
-                <div class="h-full w-full p-4 flex flex-col justify-between relative group" id="widget-${symbol}">
+                <div class="h-full w-full p-4 flex flex-col justify-between relative group widget-container" id="widget-${symbol}">
                     <div class="flex justify-between items-start">
-                        <span class="text-2xl font-bold text-gray-100 cursor-pointer hover:text-blue-400 transition-colors" 
+                        <span class="responsive-symbol font-bold text-gray-100 cursor-pointer hover:text-blue-400 transition-colors" 
                               onclick="editTicker('${symbol}', this)" 
                               title="Click to edit">${symbol}</span>
                         <button onclick="removeSymbol('${symbol}')" class="remove-btn opacity-0 transition-opacity text-gray-400 hover:text-red-500 p-1">
@@ -124,12 +146,12 @@
                     </div>
                     
                     <div class="flex-grow flex items-center justify-center">
-                        <span class="text-5xl font-mono font-bold text-gray-300 tracking-tighter" id="price-${symbol}">---</span>
+                        <span class="responsive-price font-mono font-bold text-gray-300 tracking-tighter" id="price-${symbol}">---</span>
                     </div>
                     
-                    <div class="flex justify-between items-end text-lg font-medium">
-                        <span id="chg-${symbol}" class="text-gray-500">--</span>
-                        <span id="pct-${symbol}" class="text-gray-500">--%</span>
+                    <div class="flex justify-between items-end font-medium">
+                        <span id="chg-${symbol}" class="responsive-detail text-gray-500">--</span>
+                        <span id="pct-${symbol}" class="responsive-detail text-gray-500">--%</span>
                     </div>
                 </div>
             `;
@@ -157,7 +179,7 @@
             const input = document.createElement('input');
             input.type = 'text';
             input.value = oldSymbol;
-            input.className = 'bg-gray-700 text-white text-2xl font-bold w-24 px-1 rounded border border-blue-500 uppercase focus:outline-none';
+            input.className = 'bg-gray-700 text-white responsive-symbol font-bold w-[50cqmin] px-1 rounded border border-blue-500 uppercase focus:outline-none';
             
             const parent = el.parentNode;
             
