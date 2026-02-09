@@ -4,47 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yubikey Login</title>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #2c3e50; color: white; }
-        .box { text-align: center; }
-        input {
-            padding: 15px; font-size: 1.2rem; border-radius: 5px; border: none; width: 300px; text-align: center;
-        }
-        input:focus { outline: 3px solid #27ae60; }
-        .error-msg {
-            color: #e74c3c;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 15px;
-            display: none;
-        }
-    </style>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<div class="box">
-    <form action="/auth" method="POST">
-        <input type="password" name="otp" placeholder="Touch Yubikey..." autofocus required autocomplete="off">
-    </form>
+<body class="h-screen w-screen flex items-center justify-center overflow-hidden">
 
-    <div id="error-container" class="error-msg"></div>
-</div>
+    <div class="bg-[#262626] border border-[#404040] rounded-lg shadow-2xl p-8 w-full max-w-md mx-4 transform transition-all">
+        
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#1a1a1a] border border-[#404040] mb-4">
+                <i class="fas fa-shield-alt text-2xl text-[#4ade80]"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-200 tracking-tight">Trader Dashboard</h1>
+            <p class="text-sm text-gray-500 mt-1">YubiKey Authentication Required</p>
+        </div>
 
-<script>
-    // Added script to check for error param in URL
-    document.addEventListener('DOMContentLoaded', () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const error = urlParams.get('error');
+        <form action="/auth" method="POST" class="space-y-6">
+            <div class="relative group">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="fas fa-key text-gray-500 group-focus-within:text-blue-400 transition-colors"></i>
+                </div>
+                <input type="password" 
+                       name="otp" 
+                       placeholder="Touch Yubikey..." 
+                       autofocus 
+                       required 
+                       autocomplete="off"
+                       class="w-full bg-[#1a1a1a] text-white border border-[#404040] rounded-md py-4 pl-12 pr-4 text-lg placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-center tracking-widest">
+            </div>
+            
+            <div class="text-center">
+                 <p class="text-xs text-gray-600 uppercase tracking-wider">Secure Session Access</p>
+            </div>
+        </form>
 
-        if (error) {
+        <div id="error-container" class="hidden mt-6 p-3 bg-red-900/20 border border-red-900/50 rounded text-red-400 text-sm text-center flex items-center justify-center gap-2">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="error-text"></span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
             const errorDiv = document.getElementById('error-container');
-            errorDiv.textContent = error;
-            errorDiv.style.display = 'block';
+            const errorText = document.getElementById('error-text');
 
-            // Clean up URL to remove the ugly error query param
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-    });
-</script>
+            if (error) {
+                errorText.textContent = error;
+                errorDiv.classList.remove('hidden');
+
+                // Clean up URL to remove the error query param
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+    </script>
 </body>
 </html>
