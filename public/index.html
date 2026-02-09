@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trader Dashboard</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack.min.css" rel="stylesheet"/>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #e5e5e5;
+        }
+        .grid-stack-item-content {
+            background-color: #262626;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .grid-stack-item-content:hover .remove-btn {
+            opacity: 1;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #444; 
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden">
+
+    <div class="grid-stack p-4"></div>
+
+    <div id="magic-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-50">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-2xl border border-gray-700 w-96">
+            <label class="block text-gray-400 text-sm font-bold mb-2">ADD SYMBOL</label>
+            <input type="text" id="symbol-input" 
+                class="w-full bg-gray-900 text-white border border-gray-600 rounded p-3 text-2xl uppercase focus:outline-none focus:border-blue-500 placeholder-gray-600"
+                placeholder="AAPL" autocomplete="off">
+            <div class="mt-2 text-xs text-gray-500">Press ENTER to add, ESC to cancel</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack-all.js"></script>
+
+    <script>
+        // --- Configuration ---
+        const WORKER_URL = 'https://finance.learningis1.st';
+        const REFRESH_RATE = 5000; // 5 seconds
+        
+        // --- State ---
+        let grid = null;
+        let symbolList = []; 
+        let fetchInterval = null;
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Init Grid
+            grid = GridStack.init({
+                float: true,
+                cellHeight: 100,
+                minRow: 1,
+                margin: 5,
+                column: 12,
+                disableOneColumnMode: true
+            });
+
+            // 2. Load State
+            loadState();
+
+            // 3. Start Data Loop
+            fetchData();
+            fetchInterval = setInterval(fetchData, REFRESH_RATE);
+
+            // 4. Setup Magic Input
+            setupMagicInput();
+
+            // 5. Grid Change Listener (Save Layout)
+            grid.on('change', saveState);
+        });
+
+        // --- Core Logic ---
+
+        function setupMagicInput() {
+            const modal = document.getElementById('magic-modal');
+            const input = document.getElementById('symbol-input');
+
+            // Global Key Listener
+            document.addEventListener('keydown', (e) => {
+                // Open on Backtick (`)
+                if (e.key === '`') {
+                    e.preventDefault();
+                    modal.classList.remove('hidden');
+                    input.value = '';
+                    input.focus();
+                }
+                // Close on Escape
+                if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                    modal.classList.add('hidden');
+                }
+            });
+
+            // Input Enter Listener
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const rawVal = input.value.trim().toUpperCase();
+                    if (rawVal) {
+                        addSymbolWidget(rawVal);
+                        modal.classList.add('hidden');
+                        fetchData(); // Immediate update
+                    }
+                }
+            });
+        }
+
+        function addSymbolWidget(symbol, node = null) {
+            // Prevent duplicates
+            if (symbolList.includes(symbol)) return;
+
+            symbolList.push(symbol);
+
+            const widgetHtml = `
+                <div class="grid-stack-item-content relative group p-4 flex flex-col justify-between" id="widget-${symbol}">
+                    <div class="flex justify-between items-start">
+                        <span class="text-xl font-bold text-gray-200">${symbol}</span>
+                        <button onclick="removeSymbol('${symbol}')" class="remove-btn opacity-0 transition-opacity text-gray-500 hover:text-red-500">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex-grow flex items-center justify-center">
+                        <span class="text-4xl font-mono font-bold text-gray-300" id="price-${symbol}">---</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-end text-sm font-medium">
+                        <span id="chg-${symbol}" class="text-gray-500">--</span>
+                        <span id="pct-${symbol}" class="text-gray-500">--%</span>
+                    </div>
+                </div>
+            `;
+
+            // Default widget options
+            const options = node || { w: 3, h: 2, x: 0, y: 0 };
+            
+            grid.addWidget({
+                ...options,
+                content: widgetHtml,
+                id: symbol // Important for saving state
+            });
+
+            saveState();
+        }
+
+        window.removeSymbol = function(symbol) {
+            // Remove from Grid
+            const el = document.getElementById(`widget-${symbol}`).parentElement;
+            grid.removeWidget(el);
+
+            // Remove from State
+            symbolList = symbolList.filter(s => s !== symbol);
+            saveState();
+        };
+
+        // --- Data Fetching ---
+
+        async function fetchData() {
+            if (symbolList.length === 0) return;
+
+            try {
+                // Batch Request: We send comma separated symbols.
+                // NOTE: This assumes your Worker passes this through to Schwab correctly.
+                const symbolsParam = symbolList.join(',');
+                const response = await fetch(`${WORKER_URL}/quote?symbol=${symbolsParam}`);
+                
+                if (!response.ok) throw new Error('API Error');
+
+                const data = await response.json();
+                updateUI(data);
+
+            } catch (error) {
+                console.error("Fetch failed:", error);
+            }
+        }
+
+        function updateUI(data) {
+            // Schwab API structure: { "AAPL": { quote: { ... }, ... } }
+            
+            Object.keys(data).forEach(symbol => {
+                const quote = data[symbol].quote;
+                if (!quote) return;
+
+                const priceEl = document.getElementById(`price-${symbol}`);
+                const chgEl = document.getElementById(`chg-${symbol}`);
+                const pctEl = document.getElementById(`pct-${symbol}`);
+
+                if (priceEl && chgEl && pctEl) {
+                    // Update Values
+                    priceEl.innerText = quote.lastPrice.toFixed(2);
+                    chgEl.innerText = (quote.netChange > 0 ? '+' : '') + quote.netChange.toFixed(2);
+                    pctEl.innerText = (quote.netPercentChange > 0 ? '+' : '') + quote.netPercentChange.toFixed(2) + '%';
+
+                    // Update Colors
+                    const colorClass = quote.netChange >= 0 ? 'text-green-500' : 'text-red-500';
+                    
+                    // Reset classes
+                    [priceEl, chgEl, pctEl].forEach(el => {
+                        el.classList.remove('text-green-500', 'text-red-500', 'text-gray-300', 'text-gray-500');
+                        el.classList.add(colorClass);
+                    });
+                }
+            });
+        }
+
+        // --- Persistence ---
+
+        function saveState() {
+            const layout = [];
+            grid.engine.nodes.forEach(node => {
+                layout.push({
+                    symbol: node.id, // We stored symbol in ID
+                    x: node.x,
+                    y: node.y,
+                    w: node.w,
+                    h: node.h
+                });
+            });
+            localStorage.setItem('trader_dashboard_layout', JSON.stringify(layout));
+        }
+
+        function loadState() {
+            const raw = localStorage.getItem('trader_dashboard_layout');
+            if (!raw) return;
+
+            try {
+                const layout = JSON.parse(raw);
+                layout.forEach(item => {
+                    if(item.symbol) {
+                        addSymbolWidget(item.symbol, item);
+                    }
+                });
+            } catch (e) {
+                console.error("Failed to load state", e);
+            }
+        }
+    </script>
+</body>
+</html>
