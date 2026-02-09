@@ -3,7 +3,8 @@ const REFRESH_RATE = 1000;
 
 let grid = null;
 let symbolList = [];
-let previousPrices = {}; // Stores last known price for flashing logic
+let previousPrices = {};
+let fetchController = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     grid = GridStack.init({
@@ -15,9 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
         disableOneColumnMode: true
     });
 
-    loadState();
-    fetchData();
-    setInterval(fetchData, REFRESH_RATE);
+    loadState().then(() => {
+        fetchData();
+        setInterval(fetchData, REFRESH_RATE);
+    });
+
     setupMagicInput();
 
     grid.on('change', saveState);
@@ -78,6 +81,10 @@ function setupMagicInput() {
                 fetchData();
             }
         }
+        else if (e.key === 'Escape') {
+            modal.classList.add('hidden');
+            input.blur();
+        }
     });
 }
 
@@ -85,7 +92,6 @@ function addSymbolWidget(symbol, node = null) {
     if (symbolList.includes(symbol)) return;
     symbolList.push(symbol);
 
-    // --- Sanitize input for display and attributes ---
     const safeSymbol = escapeHtml(symbol);
 
     const widgetHtml = `
@@ -187,9 +193,16 @@ window.editTicker = function(oldSymbol, el) {
 async function fetchData() {
     if (symbolList.length === 0) return;
 
+    if (fetchController) {
+        fetchController.abort();
+    }
+    fetchController = new AbortController();
+    const signal = fetchController.signal;
+
     try {
-        const symbolsParam = symbolList.join(',');
-        const response = await fetch(`${WORKER_URL}/quote?symbol=${symbolsParam}&fields=quote`);
+        const symbolsParam = symbolList.map(s => encodeURIComponent(s)).join(',');
+
+        const response = await fetch(`${WORKER_URL}/quote?symbol=${symbolsParam}&fields=quote`, { signal });
 
         if (response.redirected && response.url.includes('/login')) {
             window.location.reload();
@@ -201,6 +214,7 @@ async function fetchData() {
         const data = await response.json();
         updateUI(data);
     } catch (error) {
+        if (error.name === 'AbortError') return;
         console.error("Fetch failed:", error);
     }
 }
