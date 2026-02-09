@@ -16,20 +16,24 @@
             background-color: #1a1a1a;
             color: #e5e5e5;
         }
-        /* Style the container Gridstack generates */
+        
         .grid-stack-item-content {
             background-color: #262626 !important;
+            border: 1px solid #404040; 
             border-radius: 8px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-            /* Important: This ensures our inner h-full works */
             height: 100%; 
+            transition: border-color 0.2s;
+        }
+
+        .grid-stack-item-content:hover {
+            border-color: #525252;
         }
         
         .grid-stack-item-content:hover .remove-btn {
             opacity: 1;
         }
 
-        /* Custom scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1a1a1a; }
         ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
@@ -52,21 +56,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack-all.js"></script>
 
     <script>
-        // --- Configuration ---
         const WORKER_URL = 'https://finance.learningis1.st';
         const REFRESH_RATE = 5000; 
         
-        // --- State ---
         let grid = null;
         let symbolList = []; 
 
-        // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
             grid = GridStack.init({
                 float: true,
                 cellHeight: 100,
                 minRow: 1,
-                margin: 5,
+                margin: 10, 
                 column: 12,
                 disableOneColumnMode: true
             });
@@ -78,8 +79,6 @@
 
             grid.on('change', saveState);
         });
-
-        // --- Core Logic ---
 
         function setupMagicInput() {
             const modal = document.getElementById('magic-modal');
@@ -113,12 +112,8 @@
             if (symbolList.includes(symbol)) return;
             symbolList.push(symbol);
 
-            // UPDATED HTML STRUCTURE:
-            // 1. Removed "grid-stack-item-content" class (prevents nesting issue)
-            // 2. Added "h-full w-full" to fill the card
             const widgetHtml = `
                 <div class="h-full w-full p-4 flex flex-col justify-between relative group" id="widget-${symbol}">
-                    
                     <div class="flex justify-between items-start">
                         <span class="text-2xl font-bold text-gray-100">${symbol}</span>
                         <button onclick="removeSymbol('${symbol}')" class="remove-btn opacity-0 transition-opacity text-gray-400 hover:text-red-500 p-1">
@@ -154,8 +149,6 @@
             symbolList = symbolList.filter(s => s !== symbol);
             saveState();
         };
-
-        // --- Data Fetching ---
 
         async function fetchData() {
             if (symbolList.length === 0) return;
@@ -195,8 +188,6 @@
                 }
             });
         }
-
-        // --- Persistence ---
 
         function saveState() {
             const layout = [];
