@@ -155,7 +155,7 @@
 
             try {
                 const symbolsParam = symbolList.join(',');
-                const response = await fetch(`${WORKER_URL}/quote?symbol=${symbolsParam}`);
+                const response = await fetch(`${WORKER_URL}/quote?symbol=${symbolsParam}&fields=quote`);
                 if (!response.ok) throw new Error('API Error');
 
                 const data = await response.json();
