@@ -3,6 +3,7 @@ interface Env {
     YUBICO_SECRET_KEY: string;
     ALLOWED_YUBIKEY_ID: string;
     SESSION_SECRET: string;
+    DB: D1Database;
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
@@ -16,14 +17,16 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const cookieHeader = context.request.headers.get("Cookie");
 
     // --- CASE 1: Check for existing valid session ---
-    const isValidSession = await verifySessionCookie(
+    const sessionData = await verifySessionCookie(
         cookieHeader,
         context.env.SESSION_SECRET,
         context.env.ALLOWED_YUBIKEY_ID
     );
 
-    if (isValidSession) {
-        // If the user is already logged in, redirect them away from login pages
+    if (sessionData) {
+        context.data.yubikeyId = sessionData.yubikeyId;
+
+        // If logged in, redirect away from login pages
         if (url.pathname === "/login" || url.pathname === "/auth") {
             return Response.redirect(new URL("/", context.request.url).toString(), 302);
         }
@@ -104,46 +107,41 @@ async function createSignedSessionValue(secret: string, yubikeyId: string): Prom
     return `${encodedData}.${encodedSignature}`;
 }
 
-async function verifySessionCookie(cookieHeader: string | null, secret: string, allowedYubiKeys: string): Promise<boolean> {
-    if (!cookieHeader) return false;
+async function verifySessionCookie(cookieHeader: string | null, secret: string, allowedYubiKeys: string): Promise<{yubikeyId: string} | null> {
+    if (!cookieHeader) return null;
 
-    // Extract auth_session value
     const match = cookieHeader.match(/(?:^|; )\s*auth_session=([^;]+)/);
-    if (!match) return false;
+    if (!match) return null;
 
     const token = match[1];
-    const [encodedDataUrl, signatureUrl] = token.split('.');
+    const parts = token.split('.');
+    if (parts.length !== 2) return null; // Safety check
+    const [encodedDataUrl, signatureUrl] = parts;
 
-    if (!encodedDataUrl || !signatureUrl) return false;
+    if (!encodedDataUrl || !signatureUrl) return null;
 
-    // 1. Verify Signature
-    // Note: We verify the signature *against the data string exactly as it appeared in the cookie*
     const expectedSignatureBase64 = await signData(encodedDataUrl, secret);
     const expectedSignatureUrl = base64ToBase64Url(expectedSignatureBase64);
 
-    // Use constant-time comparison
-    if (!timingSafeStringEqual(signatureUrl, expectedSignatureUrl)) return false;
+    if (!timingSafeStringEqual(signatureUrl, expectedSignatureUrl)) return null;
 
-    // 2. Verify Expiration & Authorization
     try {
-        // Decode Base64URL to JSON
         const jsonString = atob(base64UrlToBase64(encodedDataUrl));
         const data = JSON.parse(jsonString);
 
-        if (Date.now() > data.exp) return false;
+        if (Date.now() > data.exp) return null;
 
-        // Check if the session's YubiKey ID is still in the allowed list
         const allowedIds = (allowedYubiKeys || "")
             .split(',')
             .map(id => id.trim().toLowerCase());
 
         if (!data.yubikeyId || !allowedIds.includes(data.yubikeyId.toLowerCase())) {
-            return false;
+            return null;
         }
 
-        return true;
+        return { yubikeyId: data.yubikeyId };
     } catch (e) {
-        return false;
+        return null;
     }
 }
 

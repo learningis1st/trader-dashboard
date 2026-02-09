@@ -235,6 +235,7 @@ function updateUI(data) {
     });
 }
 
+let saveTimeout = null;
 function saveState() {
     const layout = [];
     grid.engine.nodes.forEach(node => {
@@ -243,26 +244,54 @@ function saveState() {
             x: node.x, y: node.y, w: node.w, h: node.h
         });
     });
+
+    // 1. Save to LocalStorage immediately (as backup/fast cache)
     localStorage.setItem('trader_dashboard_layout', JSON.stringify(layout));
+
+    // 2. Debounce cloud sync (wait 1 second after last change)
+    if (saveTimeout) clearTimeout(saveTimeout);
+
+    saveTimeout = setTimeout(() => {
+        fetch('/api/layout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(layout)
+        }).catch(err => console.error("Cloud save failed:", err));
+    }, 1000);
 }
 
-function loadState() {
-    const raw = localStorage.getItem('trader_dashboard_layout');
-    if (!raw) return;
+async function loadState() {
     try {
-        const layout = JSON.parse(raw);
+        // 1. Try to fetch from Cloud
+        const res = await fetch('/api/layout');
+        if (!res.ok) throw new Error("API unavailable");
 
-        // 1. Start batch update to prevent incremental layout thrashing/animations
-        grid.batchUpdate();
+        const layout = await res.json();
 
-        layout.forEach(item => {
-            if(item.symbol) addSymbolWidget(item.symbol, item);
-        });
-
-        // 2. Commit all changes at once
-        grid.commit();
-
+        if (layout && layout.length > 0) {
+            applyLayout(layout);
+            // Update local cache
+            localStorage.setItem('trader_dashboard_layout', JSON.stringify(layout));
+            return;
+        }
     } catch (e) {
-        console.error("Failed to load state", e);
+        console.warn("Cloud load failed, falling back to local:", e);
     }
+
+    // 2. Fallback to LocalStorage
+    const raw = localStorage.getItem('trader_dashboard_layout');
+    if (raw) {
+        try {
+            applyLayout(JSON.parse(raw));
+        } catch (e) { console.error("Local load failed", e); }
+    }
+}
+
+function applyLayout(layout) {
+    grid.batchUpdate();
+    grid.removeAll(); // Clear existing widgets if any
+    layout.forEach(item => {
+        if(item.symbol) addSymbolWidget(item.symbol, item);
+    });
+    grid.commit();
 }
