@@ -178,63 +178,59 @@ async function fetchData() {
 
 function updateUI(data) {
     Object.keys(data).forEach(symbol => {
-        const quote = data[symbol].quote;
-        if (!quote) return;
+        try {
+            const quote = data[symbol].quote;
+            if (!quote) return;
 
-        const priceEl = document.getElementById(`price-${symbol}`);
-        const chgEl = document.getElementById(`chg-${symbol}`);
-        const pctEl = document.getElementById(`pct-${symbol}`);
+            const priceEl = document.getElementById(`price-${symbol}`);
+            const chgEl = document.getElementById(`chg-${symbol}`);
+            const pctEl = document.getElementById(`pct-${symbol}`);
 
-        if (priceEl && chgEl && pctEl) {
-            const currentPrice = quote.lastPrice;
+            if (priceEl && chgEl && pctEl) {
+                const currentPrice = quote.lastPrice || 0;
+                const netChange = quote.netChange || 0;
+                const netPercentChange = quote.netPercentChange || 0;
 
-            // Check for price change and trigger flash
-            const oldPrice = previousPrices[symbol];
-            if (oldPrice !== undefined && currentPrice !== oldPrice) {
-                // Remove existing classes to reset animation if it's currently running
-                priceEl.classList.remove('flash-up', 'flash-down');
+                const oldPrice = previousPrices[symbol];
 
-                // Force reflow
-                void priceEl.offsetWidth;
+                if (oldPrice !== undefined && currentPrice !== oldPrice) {
+                    priceEl.classList.remove('flash-up', 'flash-down');
 
-                // Add new class based on direction
-                if (currentPrice > oldPrice) {
-                    priceEl.classList.add('flash-up');
-                } else {
-                    priceEl.classList.add('flash-down');
+                    void priceEl.offsetWidth;
+
+                    if (currentPrice > oldPrice) {
+                        priceEl.classList.add('flash-up');
+                    } else {
+                        priceEl.classList.add('flash-down');
+                    }
+
+                    setTimeout(() => {
+                        priceEl.classList.remove('flash-up', 'flash-down');
+                    }, 700);
                 }
 
-                // Remove class after animation finishes
-                setTimeout(() => {
-                    priceEl.classList.remove('flash-up', 'flash-down');
-                }, 700);
+                previousPrices[symbol] = currentPrice;
+
+                priceEl.innerText = currentPrice.toFixed(2);
+                chgEl.innerText = (netChange > 0 ? '+' : '') + netChange.toFixed(2);
+                pctEl.innerText = (netPercentChange > 0 ? '+' : '') + netPercentChange.toFixed(2) + '%';
+
+                [priceEl, chgEl, pctEl].forEach(el => {
+                    el.classList.remove('text-[#4ade80]', 'text-[#f87171]', 'text-gray-300', 'text-gray-500');
+                });
+
+                if (netChange > 0) {
+                    [priceEl, chgEl, pctEl].forEach(el => el.classList.add('text-[#4ade80]'));
+                } else if (netChange < 0) {
+                    [priceEl, chgEl, pctEl].forEach(el => el.classList.add('text-[#f87171]'));
+                } else {
+                    priceEl.classList.add('text-gray-300');
+                    chgEl.classList.add('text-gray-500');
+                    pctEl.classList.add('text-gray-500');
+                }
             }
-
-            // Update state
-            previousPrices[symbol] = currentPrice;
-
-            // Update Text
-            priceEl.innerText = quote.lastPrice.toFixed(2);
-            chgEl.innerText = (quote.netChange > 0 ? '+' : '') + quote.netChange.toFixed(2);
-            pctEl.innerText = (quote.netPercentChange > 0 ? '+' : '') + quote.netPercentChange.toFixed(2) + '%';
-
-            // Update Static Colors (Daily Change)
-            [priceEl, chgEl, pctEl].forEach(el => {
-                el.classList.remove('text-[#4ade80]', 'text-[#f87171]', 'text-gray-300', 'text-gray-500');
-            });
-
-            if (quote.netChange > 0) {
-                // Positive: Green
-                [priceEl, chgEl, pctEl].forEach(el => el.classList.add('text-[#4ade80]'));
-            } else if (quote.netChange < 0) {
-                // Negative: Red
-                [priceEl, chgEl, pctEl].forEach(el => el.classList.add('text-[#f87171]'));
-            } else {
-                // Unchanged: Restore default grays
-                priceEl.classList.add('text-gray-300');
-                chgEl.classList.add('text-gray-500');
-                pctEl.classList.add('text-gray-500');
-            }
+        } catch (err) {
+            console.error(`Error updating symbol ${symbol}:`, err);
         }
     });
 }
