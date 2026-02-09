@@ -37,6 +37,19 @@ function escapeHtml(text) {
     });
 }
 
+// --- HTML Unescaping Helper ---
+function unescapeHtml(text) {
+    if (!text) return text;
+    const map = {
+        '&amp;': '&',
+        '&lt;': '<',
+        '&gt;': '>',
+        '&quot;': '"',
+        '&#039;': "'"
+    };
+    return text.replace(/&amp;|&lt;|&gt;|&quot;|&#039;/g, function(m) { return map[m]; });
+}
+
 function setupMagicInput() {
     const modal = document.getElementById('magic-modal');
     const input = document.getElementById('symbol-input');
@@ -253,7 +266,7 @@ function saveState() {
     const layout = [];
     grid.engine.nodes.forEach(node => {
         layout.push({
-            symbol: node.id,
+            symbol: unescapeHtml(node.id),
             x: node.x, y: node.y, w: node.w, h: node.h
         });
     });
@@ -284,7 +297,7 @@ async function loadState() {
 
         const layout = await res.json();
 
-        if (layout && layout.length > 0) {
+        if (Array.isArray(layout)) {
             applyLayout(layout);
             localStorage.setItem('trader_dashboard_layout', JSON.stringify(layout));
             return;
