@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yubikey Login</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #2c3e50; color: white; }
+        .box { text-align: center; }
+        input {
+            padding: 15px; font-size: 1.2rem; border-radius: 5px; border: none; width: 300px; text-align: center;
+        }
+        input:focus { outline: 3px solid #27ae60; }
+        .error-msg {
+            color: #e74c3c;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="box">
+    <form action="/auth" method="POST">
+        <input type="password" name="otp" placeholder="Touch Yubikey..." autofocus required autocomplete="off">
+    </form>
+
+    <div id="error-container" class="error-msg"></div>
+</div>
+
+<script>
+    // Added script to check for error param in URL
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error');
+
+        if (error) {
+            const errorDiv = document.getElementById('error-container');
+            errorDiv.textContent = error;
+            errorDiv.style.display = 'block';
+
+            // Clean up URL to remove the ugly error query param
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    });
+</script>
+</body>
+</html>
