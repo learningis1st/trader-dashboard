@@ -7,6 +7,12 @@ interface Env {
 
 export const onRequest: PagesFunction<Env> = async (context) => {
     const url = new URL(context.request.url);
+
+    const isStaticAsset = /\.(ico|png|jpg|jpeg|css|js|svg)$/.test(url.pathname);
+    if (isStaticAsset) {
+        return context.next();
+    }
+
     const cookieHeader = context.request.headers.get("Cookie");
 
     // --- CASE 1: Check for existing valid session ---
@@ -17,6 +23,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     );
 
     if (isValidSession) {
+        // If the user is already logged in, redirect them away from login pages
         if (url.pathname === "/login" || url.pathname === "/auth") {
             return Response.redirect(new URL("/", context.request.url).toString(), 302);
         }
@@ -74,10 +81,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
 
     // --- CASE 3: User is not logged in ---
-    // Allow static assets to bypass authentication
-    const isStaticAsset = /\.(ico|png|jpg|jpeg|css|js|svg)$/.test(url.pathname);
 
-    if (url.pathname === "/login" || isStaticAsset) {
+    if (url.pathname === "/login") {
         return context.next();
     }
 
