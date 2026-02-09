@@ -8,8 +8,8 @@ interface Env {
 export const onRequest: PagesFunction<Env> = async (context) => {
     const url = new URL(context.request.url);
 
-    const isStaticAsset = /\.(ico|png|jpg|jpeg|css|js|svg)$/.test(url.pathname);
-    if (isStaticAsset) {
+    const publicAssets = ["/style.css", "/favicon.ico"];
+    if (publicAssets.includes(url.pathname)) {
         return context.next();
     }
 
