@@ -43,21 +43,37 @@
         }
 
         .responsive-symbol {
-            /* Scales with container, but never smaller than 14px or larger than 100px */
             font-size: clamp(14px, 15cqmin, 100px);
             line-height: 1.2;
         }
 
         .responsive-price {
-            /* Main price is larger, approx 30% of the smallest dimension */
             font-size: clamp(24px, 30cqmin, 200px);
             line-height: 1;
+            padding: 0 4px; /* Padding for the background flash */
+            border-radius: 4px; /* Rounded corners for the flash */
         }
 
         .responsive-detail {
-            /* Smaller details */
             font-size: clamp(10px, 10cqmin, 60px);
             line-height: 1.2;
+        }
+
+        /* --- FLASH ANIMATIONS --- */
+        @keyframes flashGreen {
+            0% { background-color: rgba(74, 222, 128, 0.5); color: white; }
+            100% { background-color: transparent; }
+        }
+        @keyframes flashRed {
+            0% { background-color: rgba(248, 113, 113, 0.5); color: white; }
+            100% { background-color: transparent; }
+        }
+
+        .flash-up {
+            animation: flashGreen 0.7s ease-out;
+        }
+        .flash-down {
+            animation: flashRed 0.7s ease-out;
         }
     </style>
 </head>
@@ -82,7 +98,8 @@
         const REFRESH_RATE = 1000; 
         
         let grid = null;
-        let symbolList = []; 
+        let symbolList = [];
+        let previousPrices = {}; // Stores last known price for flashing logic
 
         document.addEventListener('DOMContentLoaded', () => {
             grid = GridStack.init({
@@ -171,6 +188,7 @@
             const el = document.getElementById(`widget-${symbol}`).closest('.grid-stack-item');
             grid.removeWidget(el);
             symbolList = symbolList.filter(s => s !== symbol);
+            delete previousPrices[symbol]; // Cleanup history
             saveState();
         };
 
@@ -210,6 +228,7 @@
                     // 2. Remove old widget logic
                     grid.removeWidget(widgetEl);
                     symbolList = symbolList.filter(s => s !== oldSymbol);
+                    delete previousPrices[oldSymbol]; // Cleanup old symbol history
                     
                     // 3. Add new widget with same geometry
                     addSymbolWidget(newSymbol, options);
@@ -263,10 +282,39 @@
                 const pctEl = document.getElementById(`pct-${symbol}`);
 
                 if (priceEl && chgEl && pctEl) {
+                    const currentPrice = quote.lastPrice;
+                    
+                    // Check for price change and trigger flash
+                    const oldPrice = previousPrices[symbol];
+                    if (oldPrice !== undefined && currentPrice !== oldPrice) {
+                        // Remove existing classes to reset animation if it's currently running
+                        priceEl.classList.remove('flash-up', 'flash-down');
+                        
+                        // Force reflow
+                        void priceEl.offsetWidth; 
+
+                        // Add new class based on direction
+                        if (currentPrice > oldPrice) {
+                            priceEl.classList.add('flash-up');
+                        } else {
+                            priceEl.classList.add('flash-down');
+                        }
+
+                        // Remove class after animation finishes
+                        setTimeout(() => {
+                            priceEl.classList.remove('flash-up', 'flash-down');
+                        }, 700);
+                    }
+                    
+                    // Update state
+                    previousPrices[symbol] = currentPrice;
+
+                    // Update Text
                     priceEl.innerText = quote.lastPrice.toFixed(2);
                     chgEl.innerText = (quote.netChange > 0 ? '+' : '') + quote.netChange.toFixed(2);
                     pctEl.innerText = (quote.netPercentChange > 0 ? '+' : '') + quote.netPercentChange.toFixed(2) + '%';
 
+                    // Update Static Colors (Daily Change)
                     const colorClass = quote.netChange >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]';
                     
                     [priceEl, chgEl, pctEl].forEach(el => {
