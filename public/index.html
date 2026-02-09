@@ -6,7 +6,12 @@
     <title>Trader Dashboard</title>
     
     <style>
-        body { background-color: #1a1a1a; color: #e5e5e5; }
+        body { 
+            background-color: #1a1a1a; 
+            color: #e5e5e5;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
     </style>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -32,5 +37,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack-all.js"></script>
 
     <script src="app.js"></script>
+
+    <script>
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '1';
+        });
+    </script>
 </body>
 </html>
