@@ -251,9 +251,17 @@ function loadState() {
     if (!raw) return;
     try {
         const layout = JSON.parse(raw);
+
+        // 1. Start batch update to prevent incremental layout thrashing/animations
+        grid.batchUpdate();
+
         layout.forEach(item => {
             if(item.symbol) addSymbolWidget(item.symbol, item);
         });
+
+        // 2. Commit all changes at once
+        grid.commit();
+
     } catch (e) {
         console.error("Failed to load state", e);
     }
