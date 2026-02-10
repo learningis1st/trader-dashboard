@@ -190,19 +190,19 @@ window.editTicker = function(oldSymbol, el) {
     input.select();
 };
 
+let isFetching = false;
+
 async function fetchData() {
     if (symbolList.length === 0) return;
 
-    if (fetchController) {
-        fetchController.abort();
-    }
-    fetchController = new AbortController();
-    const signal = fetchController.signal;
+    if (isFetching) return;
+
+    isFetching = true; // Lock
 
     try {
         const symbolsParam = symbolList.map(s => encodeURIComponent(s)).join(',');
 
-        const response = await fetch(`${WORKER_URL}/quote?symbol=${symbolsParam}&fields=quote`, { signal });
+        const response = await fetch(`${WORKER_URL}/quote?symbol=${symbolsParam}&fields=quote`);
 
         if (response.redirected && response.url.includes('/login')) {
             window.location.reload();
@@ -213,9 +213,11 @@ async function fetchData() {
 
         const data = await response.json();
         updateUI(data);
+
     } catch (error) {
-        if (error.name === 'AbortError') return;
         console.error("Fetch failed:", error);
+    } finally {
+        isFetching = false;
     }
 }
 
