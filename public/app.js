@@ -109,10 +109,10 @@ function addSymbolWidget(symbol, node = null) {
             </div>
             
             <div class="flex-grow flex items-center justify-center">
-                <span class="responsive-price font-mono font-bold text-gray-300 tracking-tighter" 
+                <span class="responsive-price font-mono font-bold text-gray-300 tracking-tighter cursor-pointer" 
                       id="price-${safeSymbol}"
                       data-symbol="${safeSymbol}"
-                      ondblclick="openTechnicals(this.dataset.symbol)">---</span>
+                      ondblclick="openTradingView(this.dataset.symbol)">---</span>
             </div>
             
             <div class="flex justify-between items-end font-medium">
@@ -141,8 +141,8 @@ window.removeSymbol = function(symbol) {
     saveState();
 };
 
-window.openTechnicals = function(symbol) {
-    window.open(`https://www.tradingview.com/symbols/${symbol}/technicals/`, '_blank');
+window.openTradingView = function(symbol) {
+    window.open(`https://www.tradingview.com/chart/?symbol=${symbol}`, '_blank');
 };
 
 window.editTicker = function(oldSymbol, el) {
