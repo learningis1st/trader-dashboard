@@ -4,6 +4,7 @@ const REFRESH_RATE = 1000;
 let grid = null;
 let symbolList = [];
 let previousPrices = {};
+let flashTimeouts = {};
 let fetchController = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -239,15 +240,22 @@ function updateUI(data) {
                 const oldPrice = previousPrices[symbol];
 
                 if (oldPrice !== undefined && currentPrice !== oldPrice) {
+                    if (flashTimeouts[symbol]) {
+                        clearTimeout(flashTimeouts[symbol]);
+                    }
+
                     priceEl.classList.remove('flash-up', 'flash-down');
                     void priceEl.offsetWidth;
+
                     if (currentPrice > oldPrice) {
                         priceEl.classList.add('flash-up');
                     } else {
                         priceEl.classList.add('flash-down');
                     }
-                    setTimeout(() => {
+
+                    flashTimeouts[symbol] = setTimeout(() => {
                         priceEl.classList.remove('flash-up', 'flash-down');
+                        delete flashTimeouts[symbol];
                     }, 700);
                 }
 
