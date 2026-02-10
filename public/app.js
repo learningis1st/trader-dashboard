@@ -2,6 +2,7 @@ const WORKER_URL = 'https://finance.learningis1.st';
 const REFRESH_RATE = 1000;
 
 let grid = null;
+let isRestoring = false;
 let symbolList = [];
 let previousPrices = {};
 let flashTimeouts = {};
@@ -287,6 +288,8 @@ function updateUI(data) {
 
 let saveTimeout = null;
 function saveState() {
+    if (isRestoring) return;
+
     const layout = [];
     grid.engine.nodes.forEach(node => {
         layout.push({
@@ -339,10 +342,17 @@ async function loadState() {
 }
 
 function applyLayout(layout) {
+    isRestoring = true;
+
     grid.batchUpdate();
     grid.removeAll();
+    symbolList = [];
+
     layout.forEach(item => {
         if(item.symbol) addSymbolWidget(item.symbol, item);
     });
+
     grid.commit();
+
+    isRestoring = false;
 }
