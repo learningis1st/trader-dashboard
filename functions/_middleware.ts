@@ -9,7 +9,7 @@ interface Env {
 export const onRequest: PagesFunction<Env> = async (context) => {
     const url = new URL(context.request.url);
 
-    const publicAssets = ["/style.css", "/favicon.ico"];
+    const publicAssets = ["/app.js", "/style.css", "/favicon.ico"];
     if (publicAssets.includes(url.pathname)) {
         return context.next();
     }
