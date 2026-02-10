@@ -101,8 +101,7 @@ function addSymbolWidget(symbol, node = null) {
             <div class="flex justify-between items-start">
                 <span class="responsive-symbol font-bold text-gray-100 cursor-pointer hover:text-blue-400 transition-colors" 
                       data-symbol="${safeSymbol}"
-                      onclick="editTicker(this.dataset.symbol, this)" 
-                      title="Click to edit">${safeSymbol}</span>
+                      onclick="editTicker(this.dataset.symbol, this)">${safeSymbol}</span>
                 <button data-symbol="${safeSymbol}" onclick="removeSymbol(this.dataset.symbol)" class="remove-btn opacity-0 transition-opacity text-gray-400 hover:text-red-500 p-1">
                     <i class="fas fa-times"></i>
                 </button>
