@@ -242,8 +242,7 @@ function updateUI(data) {
             if (priceEl && chgEl && pctEl) {
                 const currentPrice = quote.lastPrice || 0;
                 const netChange = quote.netChange || 0;
-                const netPercentChange = quote.netPercentChange || 0;
-
+                const netPercentChange = quote.netPercentChange || quote.futurePercentChange || 0;
                 const oldPrice = previousPrices[symbol];
 
                 if (oldPrice !== undefined && currentPrice !== oldPrice) {
