@@ -109,11 +109,10 @@ function addSymbolWidget(symbol, node = null) {
             </div>
             
             <div class="flex-grow flex items-center justify-center">
-                <span class="responsive-price font-mono font-bold text-gray-300 tracking-tighter cursor-pointer" 
+                <span class="responsive-price font-mono font-bold text-gray-300 tracking-tighter" 
                       id="price-${safeSymbol}"
                       data-symbol="${safeSymbol}"
-                      ondblclick="openTechnicals(this.dataset.symbol)"
-                      title="Double-click for technicals">---</span>
+                      ondblclick="openTechnicals(this.dataset.symbol)">---</span>
             </div>
             
             <div class="flex justify-between items-end font-medium">
