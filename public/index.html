@@ -5,24 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trader Dashboard</title>
     
-    <style>
-        body { 
-            opacity: 0;
-            transition: opacity 0.4s ease-in-out;
-        }
-    </style>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>body { opacity: 0; transition: opacity 0.4s ease-in-out; }</style>
 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="min-h-screen w-screen overflow-x-hidden overflow-y-auto">
-
     <div class="grid-stack p-4"></div>
 
-    <!-- Empty state hint -->
     <div id="empty-hint" class="hidden fixed inset-0 flex items-center justify-center pointer-events-none z-10">
         <div class="text-center text-gray-500">
             <i class="fas fa-chart-line text-4xl mb-4 opacity-50"></i>
@@ -40,12 +32,10 @@
         </div>
     </div>
 
-    <!-- Settings Button -->
     <button id="settings-btn" class="settings-btn" title="Settings">
         <i class="fas fa-cog text-lg"></i>
     </button>
 
-    <!-- Settings Modal -->
     <div id="settings-modal" class="settings-modal hidden">
         <div class="settings-panel">
             <div class="settings-title">
@@ -60,13 +50,8 @@
                         <i class="fas fa-info-circle"></i>
                     </span>
                 </label>
-                <input type="number"
-                       id="refresh-rate-input"
-                       class="settings-input"
-                       min="500"
-                       max="10000"
-                       step="100"
-                       placeholder="1000">
+                <input type="number" id="refresh-rate-input" class="settings-input"
+                       min="500" max="10000" step="100" placeholder="1000">
             </div>
 
             <div class="settings-group">
@@ -81,23 +66,13 @@
                         <label class="settings-sublabel" for="widget-width-input">
                             Width: <span id="widget-width-value" class="settings-value">2</span>
                         </label>
-                        <input type="range"
-                               id="widget-width-input"
-                               class="settings-slider"
-                               min="1"
-                               max="12"
-                               step="1">
+                        <input type="range" id="widget-width-input" class="settings-slider" min="1" max="12" step="1">
                     </div>
                     <div class="settings-field">
                         <label class="settings-sublabel" for="widget-height-input">
                             Height: <span id="widget-height-value" class="settings-value">2</span>
                         </label>
-                        <input type="range"
-                               id="widget-height-input"
-                               class="settings-slider"
-                               min="1"
-                               max="12"
-                               step="1">
+                        <input type="range" id="widget-height-input" class="settings-slider" min="1" max="12" step="1">
                     </div>
                 </div>
             </div>
@@ -109,15 +84,8 @@
                         <i class="fas fa-info-circle"></i>
                     </span>
                 </label>
-                <input type="range"
-                       id="decimal-precision-input"
-                       class="settings-slider"
-                       min="2"
-                       max="6"
-                       step="1">
+                <input type="range" id="decimal-precision-input" class="settings-slider" min="2" max="6" step="1">
             </div>
-
-            <!-- Add more settings groups here in the future -->
 
             <div class="settings-actions">
                 <button id="settings-cancel" class="settings-btn-cancel">Cancel</button>
@@ -128,8 +96,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack-all.js"></script>
     <script type="module" src="app.js"></script>
-    <script>
-        window.addEventListener('load', () => document.body.style.opacity = '1');
-    </script>
+    <script>window.addEventListener('load', () => document.body.style.opacity = '1');</script>
 </body>
 </html>

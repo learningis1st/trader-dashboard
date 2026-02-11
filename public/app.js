@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loadSettings();
-
     loadState().then(() => {
         fetchData();
         startRefreshInterval();
@@ -23,6 +22,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupMagicInput();
     setupSettingsModal();
-
     state.grid.on('change', saveState);
 });

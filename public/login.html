@@ -5,24 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yubikey Login</title>
     
-    <style>
-        body { 
-            background-color: #1a1a1a; 
-            color: #e5e5e5; 
-            opacity: 0; 
-            transition: opacity 0.4s ease-in-out;
-        }
-    </style>
-    
+    <style>body { opacity: 0; transition: opacity 0.4s ease-in-out; }</style>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="h-screen w-screen flex items-center justify-center overflow-hidden">
-
-    <div class="bg-[#262626] border border-[#404040] rounded-lg shadow-2xl p-8 w-full max-w-md mx-4 transform transition-all">
-        
+    <div class="bg-[#262626] border border-[#404040] rounded-lg shadow-2xl p-8 w-full max-w-md mx-4">
         <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#1a1a1a] border border-[#404040] mb-4">
                 <i class="fas fa-lock text-3xl text-blue-500"></i>
@@ -36,17 +26,12 @@
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <i class="fas fa-key text-gray-500 group-focus-within:text-blue-400 transition-colors"></i>
                 </div>
-                <input type="password" 
-                       name="otp" 
-                       placeholder="Touch Yubikey..." 
-                       autofocus 
-                       required 
-                       autocomplete="off"
+                <input type="password" name="otp" placeholder="Touch Yubikey..."
+                       autofocus required autocomplete="off"
                        class="w-full bg-[#1a1a1a] text-white border border-[#404040] rounded-md py-4 pl-12 pr-4 text-lg placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-center tracking-widest">
             </div>
-            
             <div class="text-center">
-                 <p class="text-xs text-gray-600 uppercase tracking-wider">Secure Session Access</p>
+                <p class="text-xs text-gray-600 uppercase tracking-wider">Secure Session Access</p>
             </div>
         </form>
 
@@ -57,21 +42,15 @@
     </div>
 
     <script>
-        window.addEventListener('load', () => {
-            document.body.style.opacity = '1';
-        });
+        window.addEventListener('load', () => document.body.style.opacity = '1');
 
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const error = urlParams.get('error');
-            const errorDiv = document.getElementById('error-container');
-            const errorText = document.getElementById('error-text');
 
             if (error) {
-                errorText.textContent = error;
-                errorDiv.classList.remove('hidden');
-
-                // Clean up URL to remove the error query param
+                document.getElementById('error-text').textContent = error;
+                document.getElementById('error-container').classList.remove('hidden');
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
         });
