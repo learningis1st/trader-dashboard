@@ -70,11 +70,11 @@ async function handleAuth(context: EventContext<Env, string, Record<string, unkn
     }
 
     const yubikeyId = otp.substring(0, YUBIKEY_ID_LENGTH).toLowerCase();
-    const allowedIds = parseAllowedIds(context.env.ALLOWED_YUBIKEY_ID);
+    // const allowedIds = parseAllowedIds(context.env.ALLOWED_YUBIKEY_ID);
 
-    if (!allowedIds.includes(yubikeyId)) {
-        return redirectWithError("Unauthorized Device ID");
-    }
+    // if (!allowedIds.includes(yubikeyId)) {
+    //     return redirectWithError("Unauthorized Device ID");
+    // }
 
     try {
         const isValid = await verifyYubicoOTP(
@@ -133,8 +133,12 @@ async function verifySessionCookie(
 
         if (Date.now() > data.exp) return null;
 
-        const allowedIds = parseAllowedIds(allowedYubiKeys);
-        if (!data.yubikeyId || !allowedIds.includes(data.yubikeyId.toLowerCase())) {
+        // const allowedIds = parseAllowedIds(allowedYubiKeys);
+        // if (!data.yubikeyId || !allowedIds.includes(data.yubikeyId.toLowerCase())) {
+        //     return null;
+        // }
+
+        if (!data.yubikeyId) {
             return null;
         }
 
