@@ -2,8 +2,6 @@ const WORKER_URL = 'https://finance.learningis1.st';
 let REFRESH_RATE = 1000;
 const MIN_REFRESH_RATE = 500;
 const MAX_REFRESH_RATE = 10000;
-const CELL_HEIGHT = 100;
-const GRID_MARGIN = 10;
 
 let grid = null;
 let isRestoring = false;
@@ -12,23 +10,12 @@ let previousPrices = {};
 let flashTimeouts = {};
 let refreshInterval = null;
 
-function calculateMaxRows() {
-    // Account for padding on the grid container (p-4 = 16px on each side)
-    const availableHeight = window.innerHeight - 32;
-    // Each row is cellHeight + margin (top and bottom)
-    const rowHeight = CELL_HEIGHT + GRID_MARGIN;
-    return Math.max(1, Math.floor(availableHeight / rowHeight));
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-    const maxRows = calculateMaxRows();
-
     grid = GridStack.init({
         float: true,
-        cellHeight: CELL_HEIGHT,
+        cellHeight: 100,
         minRow: 1,
-        maxRow: maxRows,
-        margin: GRID_MARGIN,
+        margin: 10,
         column: 12,
         disableOneColumnMode: true
     });
@@ -42,23 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupMagicInput();
     setupSettingsModal();
-    setupResizeHandler();
 
     grid.on('change', saveState);
 });
-
-function setupResizeHandler() {
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            const newMaxRows = calculateMaxRows();
-            grid.opts.maxRow = newMaxRows;
-            // Compact widgets to fit within new constraints
-            grid.compact();
-        }, 150);
-    });
-}
 
 function startRefreshInterval() {
     if (refreshInterval) {
