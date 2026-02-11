@@ -1,7 +1,7 @@
 const WORKER_URL = 'https://finance.learningis1.st';
 let REFRESH_RATE = 1000;
-const MIN_REFRESH_RATE = 1000;
-const MAX_REFRESH_RATE = 60000;
+const MIN_REFRESH_RATE = 500;
+const MAX_REFRESH_RATE = 10000;
 
 let grid = null;
 let isRestoring = false;
