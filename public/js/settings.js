@@ -60,8 +60,6 @@ export function setupSettingsModal() {
         updatePrecisionDisplay();
 
         modal.classList.remove('hidden');
-        input.focus();
-        input.select();
     });
 
     cancelBtn.addEventListener('click', () => {
