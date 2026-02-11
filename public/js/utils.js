@@ -52,4 +52,3 @@ export function formatPrice(price, userPrecision) {
     const decimals = getAppropriateDecimals(price, userPrecision);
     return formatNumber(price, decimals);
 }
-

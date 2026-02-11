@@ -24,4 +24,3 @@ export const state = {
     isFetching: false,
     saveTimeout: null
 };
-
