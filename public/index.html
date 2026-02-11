@@ -34,6 +34,39 @@
         </div>
     </div>
 
+    <!-- Settings Button -->
+    <button id="settings-btn" class="settings-btn" title="Settings">
+        <i class="fas fa-cog text-lg"></i>
+    </button>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="settings-modal hidden">
+        <div class="settings-panel">
+            <div class="settings-title">
+                <i class="fas fa-cog"></i>
+                Settings
+            </div>
+
+            <div class="settings-group">
+                <label class="settings-label" for="refresh-rate-input">Refresh Rate (ms)</label>
+                <input type="number"
+                       id="refresh-rate-input"
+                       class="settings-input"
+                       min="1000"
+                       step="100"
+                       placeholder="1000">
+                <div class="settings-hint">Minimum: 1000ms. How often to fetch new price data.</div>
+            </div>
+
+            <!-- Add more settings groups here in the future -->
+
+            <div class="settings-actions">
+                <button id="settings-cancel" class="settings-btn-cancel">Cancel</button>
+                <button id="settings-save" class="settings-btn-save">Save</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack-all.js"></script>
 
     <script src="app.js"></script>

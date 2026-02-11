@@ -69,3 +69,139 @@ body {
 .flash-down {
     animation: flashRed 0.7s ease-out;
 }
+
+/* --- SETTINGS BUTTON & MODAL --- */
+.settings-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #262626;
+    border: 1px solid #404040;
+    color: #9ca3af;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 40;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+.settings-btn:hover {
+    background-color: #333;
+    border-color: #525252;
+    color: #e5e5e5;
+    transform: rotate(45deg);
+}
+
+.settings-modal {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.settings-modal.hidden {
+    display: none;
+}
+
+.settings-panel {
+    background-color: #262626;
+    border: 1px solid #404040;
+    border-radius: 8px;
+    padding: 24px;
+    width: 100%;
+    max-width: 400px;
+    margin: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.settings-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e5e5e5;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-group {
+    margin-bottom: 16px;
+}
+
+.settings-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.settings-input {
+    width: 100%;
+    background-color: #1a1a1a;
+    border: 1px solid #404040;
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: #e5e5e5;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.settings-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.settings-hint {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.settings-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.settings-btn-cancel,
+.settings-btn-save {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.settings-btn-cancel {
+    background-color: transparent;
+    border: 1px solid #404040;
+    color: #9ca3af;
+}
+
+.settings-btn-cancel:hover {
+    background-color: #333;
+    color: #e5e5e5;
+}
+
+.settings-btn-save {
+    background-color: #3b82f6;
+    border: 1px solid #3b82f6;
+    color: white;
+}
+
+.settings-btn-save:hover {
+    background-color: #2563eb;
+}

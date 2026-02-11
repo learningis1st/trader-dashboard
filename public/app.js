@@ -1,5 +1,5 @@
 const WORKER_URL = 'https://finance.learningis1.st';
-const REFRESH_RATE = 1000;
+let REFRESH_RATE = 1000;
 
 let grid = null;
 let isRestoring = false;
@@ -7,6 +7,7 @@ let symbolList = [];
 let previousPrices = {};
 let flashTimeouts = {};
 let fetchController = null;
+let refreshInterval = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     grid = GridStack.init({
@@ -18,15 +19,101 @@ document.addEventListener('DOMContentLoaded', () => {
         disableOneColumnMode: true
     });
 
+    loadSettings();
+
     loadState().then(() => {
         fetchData();
-        setInterval(fetchData, REFRESH_RATE);
+        startRefreshInterval();
     });
 
     setupMagicInput();
+    setupSettingsModal();
 
     grid.on('change', saveState);
 });
+
+function startRefreshInterval() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+    refreshInterval = setInterval(fetchData, REFRESH_RATE);
+}
+
+// --- Settings Management ---
+function setupSettingsModal() {
+    const btn = document.getElementById('settings-btn');
+    const modal = document.getElementById('settings-modal');
+    const input = document.getElementById('refresh-rate-input');
+    const cancelBtn = document.getElementById('settings-cancel');
+    const saveBtn = document.getElementById('settings-save');
+
+    btn.addEventListener('click', () => {
+        input.value = REFRESH_RATE;
+        modal.classList.remove('hidden');
+        input.focus();
+        input.select();
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+
+    saveBtn.addEventListener('click', () => {
+        saveSettingsFromModal();
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            saveSettingsFromModal();
+        } else if (e.key === 'Escape') {
+            modal.classList.add('hidden');
+        }
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+}
+
+function saveSettingsFromModal() {
+    const modal = document.getElementById('settings-modal');
+    const input = document.getElementById('refresh-rate-input');
+
+    let newRate = parseInt(input.value, 10);
+
+    if (isNaN(newRate) || newRate < 1000) {
+        newRate = 1000;
+    }
+
+    REFRESH_RATE = newRate;
+    saveSettings();
+    startRefreshInterval();
+    modal.classList.add('hidden');
+}
+
+function loadSettings() {
+    // Try localStorage first
+    const raw = localStorage.getItem('trader_dashboard_settings');
+    if (raw) {
+        try {
+            const settings = JSON.parse(raw);
+            if (settings.refreshRate && settings.refreshRate >= 1000) {
+                REFRESH_RATE = settings.refreshRate;
+            }
+        } catch (e) {
+            console.error("Failed to parse settings:", e);
+        }
+    }
+}
+
+function saveSettings() {
+    const settings = {
+        refreshRate: REFRESH_RATE
+    };
+    localStorage.setItem('trader_dashboard_settings', JSON.stringify(settings));
+}
 
 // --- HTML Escaping Helper ---
 function escapeHtml(text) {
