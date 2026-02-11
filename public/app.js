@@ -437,7 +437,7 @@ function updateUI(data) {
 
                 priceEl.innerText = formatNumber(currentPrice, DECIMAL_PRECISION);
                 chgEl.innerText = (netChange > 0 ? '+' : '') + formatNumber(netChange, DECIMAL_PRECISION);
-                pctEl.innerText = (netPercentChange > 0 ? '+' : '') + formatNumber(netPercentChange, DECIMAL_PRECISION) + '%';
+                pctEl.innerText = (netPercentChange > 0 ? '+' : '') + netPercentChange.toFixed(2) + '%';
 
                 [priceEl, chgEl, pctEl].forEach(el => {
                     el.classList.remove('text-[#4ade80]', 'text-[#f87171]', 'text-gray-300', 'text-gray-500');
