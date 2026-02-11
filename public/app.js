@@ -354,6 +354,24 @@ window.editTicker = function(oldSymbol, el) {
 };
 
 // --- Number Formatting Helper ---
+function getAppropriateDecimals(price, userPrecision) {
+    const absPrice = Math.abs(price);
+
+    // For very small prices (penny stocks, forex), use more precision
+    if (absPrice > 0 && absPrice < 0.01) {
+        return Math.max(6, userPrecision); // At least 6 decimals for sub-cent prices
+    } else if (absPrice < 0.1) {
+        return Math.max(5, userPrecision); // At least 5 decimals
+    } else if (absPrice < 1) {
+        return Math.max(4, userPrecision); // At least 4 decimals for sub-dollar
+    } else if (absPrice < 10) {
+        return Math.max(3, userPrecision); // At least 3 decimals for single digits
+    }
+
+    // For regular prices, use user preference
+    return userPrecision;
+}
+
 function formatNumber(num, maxDecimals) {
     // Round to maxDecimals, then remove trailing zeros but keep at least 2 decimals
     const fixed = num.toFixed(maxDecimals);
@@ -364,6 +382,11 @@ function formatNumber(num, maxDecimals) {
         return parsed.toFixed(2);
     }
     return parsed.toString();
+}
+
+function formatPrice(price, userPrecision) {
+    const decimals = getAppropriateDecimals(price, userPrecision);
+    return formatNumber(price, decimals);
 }
 
 let isFetching = false;
@@ -435,8 +458,11 @@ function updateUI(data) {
 
                 previousPrices[symbol] = currentPrice;
 
-                priceEl.innerText = formatNumber(currentPrice, DECIMAL_PRECISION);
-                chgEl.innerText = (netChange > 0 ? '+' : '') + formatNumber(netChange, DECIMAL_PRECISION);
+                // Use appropriate precision based on price magnitude
+                const pricePrecision = getAppropriateDecimals(currentPrice, DECIMAL_PRECISION);
+
+                priceEl.innerText = formatPrice(currentPrice, DECIMAL_PRECISION);
+                chgEl.innerText = (netChange > 0 ? '+' : '') + formatNumber(netChange, pricePrecision);
                 pctEl.innerText = (netPercentChange > 0 ? '+' : '') + netPercentChange.toFixed(2) + '%';
 
                 [priceEl, chgEl, pctEl].forEach(el => {
