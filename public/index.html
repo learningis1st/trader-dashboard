@@ -58,6 +58,9 @@
             <div class="settings-group">
                 <label class="settings-label" for="refresh-rate-input">
                     Refresh Rate (ms)
+                    <span class="settings-info" data-tooltip="How often to fetch new price data (500-10000ms).">
+                        <i class="fas fa-info-circle"></i>
+                    </span>
                 </label>
                 <input type="number"
                        id="refresh-rate-input"
@@ -66,11 +69,15 @@
                        max="10000"
                        step="100"
                        placeholder="1000">
-                <div class="settings-hint">How often to fetch new price data (500-10000ms).</div>
             </div>
 
             <div class="settings-group">
-                <label class="settings-label">Default Widget Size</label>
+                <label class="settings-label">
+                    Default Widget Size
+                    <span class="settings-info" data-tooltip="Size for newly added widgets (1-12 grid units).">
+                        <i class="fas fa-info-circle"></i>
+                    </span>
+                </label>
                 <div class="settings-row">
                     <div class="settings-field">
                         <label class="settings-sublabel" for="widget-width-input">
@@ -95,12 +102,14 @@
                                step="1">
                     </div>
                 </div>
-                <div class="settings-hint">Size for newly added widgets (1-12 grid units).</div>
             </div>
 
             <div class="settings-group">
                 <label class="settings-label" for="decimal-precision-input">
                     Decimal Precision: <span id="decimal-precision-value" class="settings-value">2</span>
+                    <span class="settings-info" data-tooltip="Decimal places for prices. Smaller values auto-adjust for precision.">
+                        <i class="fas fa-info-circle"></i>
+                    </span>
                 </label>
                 <input type="range"
                        id="decimal-precision-input"
@@ -108,7 +117,6 @@
                        min="2"
                        max="6"
                        step="1">
-                <div class="settings-hint">Decimal places for prices. Smaller values auto-adjust for precision.</div>
             </div>
 
             <!-- Add more settings groups here in the future -->
