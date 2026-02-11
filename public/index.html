@@ -24,6 +24,22 @@
 
     <div class="grid-stack p-4"></div>
 
+    <!-- Empty state hint -->
+    <div id="empty-hint" class="hidden fixed inset-0 flex items-center justify-center pointer-events-none z-10">
+        <div class="text-center text-gray-500">
+            <i class="fas fa-chart-line text-4xl mb-4 opacity-50"></i>
+            <p class="text-lg">Press <kbd class="px-2 py-1 bg-gray-700 rounded text-gray-300">`</kbd> to add a symbol</p>
+        </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="loading-indicator" class="fixed top-4 right-4 hidden z-40">
+        <div class="flex items-center gap-2 bg-gray-800 px-3 py-2 rounded-lg border border-gray-700">
+            <i class="fas fa-circle-notch fa-spin text-blue-400"></i>
+            <span class="text-sm text-gray-400">Loading...</span>
+        </div>
+    </div>
+
     <div id="magic-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-50">
         <div class="bg-gray-800 p-6 rounded-lg shadow-2xl border border-gray-700 w-96">
             <label class="block text-gray-400 text-sm font-bold mb-2">ADD SYMBOL</label>

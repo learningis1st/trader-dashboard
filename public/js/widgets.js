@@ -1,7 +1,7 @@
 import { state } from './config.js';
 import { escapeHtml } from './utils.js';
 import { saveState } from './state.js';
-import { fetchData } from './data.js';
+import { fetchData, updateEmptyHint } from './data.js';
 
 export function setupMagicInput() {
     const modal = document.getElementById('magic-modal');
@@ -76,6 +76,7 @@ export function addSymbolWidget(symbol, node = null) {
     });
 
     saveState();
+    updateEmptyHint();
 }
 
 export function removeSymbol(symbol) {
@@ -84,6 +85,7 @@ export function removeSymbol(symbol) {
     state.symbolList = state.symbolList.filter(s => s !== symbol);
     delete state.previousPrices[symbol];
     saveState();
+    updateEmptyHint();
 }
 
 export function openTradingView(symbol) {
@@ -150,4 +152,3 @@ window.widgetActions = {
     openTradingView,
     editTicker
 };
-

@@ -2,28 +2,35 @@ import { state } from './config.js';
 import { unescapeHtml } from './utils.js';
 import { addSymbolWidget } from './widgets.js';
 
+let layoutSaveDebounce = null;
+
 export function saveState() {
     if (state.isRestoring) return;
 
-    const layout = [];
-    state.grid.engine.nodes.forEach(node => {
-        layout.push({
-            symbol: unescapeHtml(node.id),
-            x: node.x, y: node.y, w: node.w, h: node.h
+    // Debounce rapid changes (e.g., during drag)
+    if (layoutSaveDebounce) clearTimeout(layoutSaveDebounce);
+
+    layoutSaveDebounce = setTimeout(() => {
+        const layout = [];
+        state.grid.engine.nodes.forEach(node => {
+            layout.push({
+                symbol: unescapeHtml(node.id),
+                x: node.x, y: node.y, w: node.w, h: node.h
+            });
         });
-    });
 
-    localStorage.setItem('trader_dashboard_layout', JSON.stringify(layout));
+        localStorage.setItem('trader_dashboard_layout', JSON.stringify(layout));
 
-    if (state.saveTimeout) clearTimeout(state.saveTimeout);
+        if (state.saveTimeout) clearTimeout(state.saveTimeout);
 
-    state.saveTimeout = setTimeout(() => {
-        fetch('/api/layout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(layout)
-        }).catch(err => console.error("Cloud save failed:", err));
-    }, 1000);
+        state.saveTimeout = setTimeout(() => {
+            fetch('/api/layout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(layout)
+            }).catch(err => console.error("Cloud save failed:", err));
+        }, 1000);
+    }, 100);
 }
 
 export async function loadState() {
@@ -71,4 +78,3 @@ function applyLayout(layout) {
 
     state.isRestoring = false;
 }
-

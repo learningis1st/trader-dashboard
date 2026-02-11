@@ -9,10 +9,13 @@ export function startRefreshInterval() {
 }
 
 export async function fetchData() {
+    updateEmptyHint();
+
     if (state.symbolList.length === 0) return;
     if (state.isFetching) return;
 
     state.isFetching = true;
+    showLoading(true);
 
     try {
         const symbolsParam = state.symbolList.map(s => encodeURIComponent(s)).join(',');
@@ -32,6 +35,21 @@ export async function fetchData() {
         console.error("Fetch failed:", error);
     } finally {
         state.isFetching = false;
+        showLoading(false);
+    }
+}
+
+function showLoading(show) {
+    const el = document.getElementById('loading-indicator');
+    if (el) {
+        el.classList.toggle('hidden', !show);
+    }
+}
+
+export function updateEmptyHint() {
+    const el = document.getElementById('empty-hint');
+    if (el) {
+        el.classList.toggle('hidden', state.symbolList.length > 0);
     }
 }
 
@@ -98,4 +116,3 @@ function updateUI(data) {
         }
     });
 }
-
