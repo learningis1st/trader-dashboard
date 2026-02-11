@@ -1,12 +1,13 @@
 const WORKER_URL = 'https://finance.learningis1.st';
 let REFRESH_RATE = 1000;
+const MIN_REFRESH_RATE = 1000;
+const MAX_REFRESH_RATE = 60000;
 
 let grid = null;
 let isRestoring = false;
 let symbolList = [];
 let previousPrices = {};
 let flashTimeouts = {};
-let fetchController = null;
 let refreshInterval = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -83,8 +84,10 @@ function saveSettingsFromModal() {
 
     let newRate = parseInt(input.value, 10);
 
-    if (isNaN(newRate) || newRate < 1000) {
-        newRate = 1000;
+    if (isNaN(newRate) || newRate < MIN_REFRESH_RATE) {
+        newRate = MIN_REFRESH_RATE;
+    } else if (newRate > MAX_REFRESH_RATE) {
+        newRate = MAX_REFRESH_RATE;
     }
 
     REFRESH_RATE = newRate;
@@ -99,7 +102,7 @@ function loadSettings() {
     if (raw) {
         try {
             const settings = JSON.parse(raw);
-            if (settings.refreshRate && settings.refreshRate >= 1000) {
+            if (settings.refreshRate && settings.refreshRate >= MIN_REFRESH_RATE && settings.refreshRate <= MAX_REFRESH_RATE) {
                 REFRESH_RATE = settings.refreshRate;
             }
         } catch (e) {
