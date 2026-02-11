@@ -1,12 +1,6 @@
 body {
     background-color: #1a1a1a;
     color: #e5e5e5;
-    overflow: hidden;
-}
-
-.grid-stack {
-    min-height: 100%;
-    max-height: 100vh;
 }
 
 .grid-stack-item-content {

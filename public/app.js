@@ -10,32 +10,14 @@ let previousPrices = {};
 let flashTimeouts = {};
 let refreshInterval = null;
 
-function calculateMaxRows() {
-    const cellHeight = 100;
-    const margin = 10;
-    const padding = 16; // p-4 on grid-stack container
-    const availableHeight = window.innerHeight - (padding * 2);
-    return Math.floor(availableHeight / (cellHeight + margin));
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-    const maxRows = calculateMaxRows();
-
     grid = GridStack.init({
-        float: false,
+        float: true,
         cellHeight: 100,
         minRow: 1,
-        maxRow: maxRows,
         margin: 10,
         column: 12,
         disableOneColumnMode: true
-    });
-
-    // Update maxRow on window resize
-    window.addEventListener('resize', () => {
-        const newMaxRows = calculateMaxRows();
-        grid.opts.maxRow = newMaxRows;
-        grid.engine.maxRow = newMaxRows;
     });
 
     loadSettings();
