@@ -8,6 +8,10 @@ const MAX_WIDGET_SIZE = 12;
 let DEFAULT_WIDGET_WIDTH = 2;
 let DEFAULT_WIDGET_HEIGHT = 2;
 
+const MIN_DECIMAL_PRECISION = 0;
+const MAX_DECIMAL_PRECISION = 6;
+let DECIMAL_PRECISION = 2;
+
 let grid = null;
 let isRestoring = false;
 let symbolList = [];
@@ -52,6 +56,7 @@ function setupSettingsModal() {
     const input = document.getElementById('refresh-rate-input');
     const widthInput = document.getElementById('widget-width-input');
     const heightInput = document.getElementById('widget-height-input');
+    const precisionInput = document.getElementById('decimal-precision-input');
     const cancelBtn = document.getElementById('settings-cancel');
     const saveBtn = document.getElementById('settings-save');
 
@@ -59,6 +64,7 @@ function setupSettingsModal() {
         input.value = REFRESH_RATE;
         widthInput.value = DEFAULT_WIDGET_WIDTH;
         heightInput.value = DEFAULT_WIDGET_HEIGHT;
+        precisionInput.value = DECIMAL_PRECISION;
         modal.classList.remove('hidden');
         input.focus();
         input.select();
@@ -80,7 +86,7 @@ function setupSettingsModal() {
         }
     });
 
-    [widthInput, heightInput].forEach(inp => {
+    [widthInput, heightInput, precisionInput].forEach(inp => {
         inp.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 saveSettingsFromModal();
@@ -102,6 +108,7 @@ function saveSettingsFromModal() {
     const input = document.getElementById('refresh-rate-input');
     const widthInput = document.getElementById('widget-width-input');
     const heightInput = document.getElementById('widget-height-input');
+    const precisionInput = document.getElementById('decimal-precision-input');
 
     let newRate = parseInt(input.value, 10);
     if (isNaN(newRate) || newRate < MIN_REFRESH_RATE) {
@@ -124,12 +131,21 @@ function saveSettingsFromModal() {
         newHeight = MAX_WIDGET_SIZE;
     }
 
+    let newPrecision = parseInt(precisionInput.value, 10);
+    if (isNaN(newPrecision) || newPrecision < MIN_DECIMAL_PRECISION) {
+        newPrecision = MIN_DECIMAL_PRECISION;
+    } else if (newPrecision > MAX_DECIMAL_PRECISION) {
+        newPrecision = MAX_DECIMAL_PRECISION;
+    }
+
     REFRESH_RATE = newRate;
     DEFAULT_WIDGET_WIDTH = newWidth;
     DEFAULT_WIDGET_HEIGHT = newHeight;
+    DECIMAL_PRECISION = newPrecision;
 
     saveSettings();
     startRefreshInterval();
+    fetchData(); // Refresh to apply new precision
     modal.classList.add('hidden');
 }
 
@@ -148,6 +164,9 @@ function loadSettings() {
             if (settings.defaultWidgetHeight && settings.defaultWidgetHeight >= MIN_WIDGET_SIZE && settings.defaultWidgetHeight <= MAX_WIDGET_SIZE) {
                 DEFAULT_WIDGET_HEIGHT = settings.defaultWidgetHeight;
             }
+            if (settings.decimalPrecision !== undefined && settings.decimalPrecision >= MIN_DECIMAL_PRECISION && settings.decimalPrecision <= MAX_DECIMAL_PRECISION) {
+                DECIMAL_PRECISION = settings.decimalPrecision;
+            }
         } catch (e) {
             console.error("Failed to parse settings:", e);
         }
@@ -158,7 +177,8 @@ function saveSettings() {
     const settings = {
         refreshRate: REFRESH_RATE,
         defaultWidgetWidth: DEFAULT_WIDGET_WIDTH,
-        defaultWidgetHeight: DEFAULT_WIDGET_HEIGHT
+        defaultWidgetHeight: DEFAULT_WIDGET_HEIGHT,
+        decimalPrecision: DECIMAL_PRECISION
     };
     localStorage.setItem('trader_dashboard_settings', JSON.stringify(settings));
 }
@@ -402,9 +422,9 @@ function updateUI(data) {
 
                 previousPrices[symbol] = currentPrice;
 
-                priceEl.innerText = currentPrice.toFixed(2);
-                chgEl.innerText = (netChange > 0 ? '+' : '') + netChange.toFixed(2);
-                pctEl.innerText = (netPercentChange > 0 ? '+' : '') + netPercentChange.toFixed(2) + '%';
+                priceEl.innerText = currentPrice.toFixed(DECIMAL_PRECISION);
+                chgEl.innerText = (netChange > 0 ? '+' : '') + netChange.toFixed(DECIMAL_PRECISION);
+                pctEl.innerText = (netPercentChange > 0 ? '+' : '') + netPercentChange.toFixed(DECIMAL_PRECISION) + '%';
 
                 [priceEl, chgEl, pctEl].forEach(el => {
                     el.classList.remove('text-[#4ade80]', 'text-[#f87171]', 'text-gray-300', 'text-gray-500');
