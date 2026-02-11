@@ -355,10 +355,15 @@ window.editTicker = function(oldSymbol, el) {
 
 // --- Number Formatting Helper ---
 function formatNumber(num, maxDecimals) {
-    // Round to maxDecimals, then remove trailing zeros
+    // Round to maxDecimals, then remove trailing zeros but keep at least 2 decimals
     const fixed = num.toFixed(maxDecimals);
-    // parseFloat removes trailing zeros, then convert back to string
-    return parseFloat(fixed).toString();
+    const parsed = parseFloat(fixed);
+    // Ensure minimum of 2 decimal places
+    if (Number.isInteger(parsed) || (parsed * 10) % 1 === 0) {
+        // If it's a whole number or has only 1 decimal, use toFixed(2)
+        return parsed.toFixed(2);
+    }
+    return parsed.toString();
 }
 
 let isFetching = false;
