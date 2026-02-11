@@ -57,15 +57,16 @@
 
             <div class="settings-group">
                 <label class="settings-label" for="refresh-rate-input">
-                    Refresh Rate: <span id="refresh-rate-value" class="settings-value">1000ms</span>
+                    Refresh Rate (ms)
                 </label>
-                <input type="range"
+                <input type="number"
                        id="refresh-rate-input"
-                       class="settings-slider"
+                       class="settings-input"
                        min="500"
                        max="10000"
-                       step="100">
-                <div class="settings-hint">How often to fetch new price data.</div>
+                       step="100"
+                       placeholder="1000">
+                <div class="settings-hint">How often to fetch new price data (500-10000ms).</div>
             </div>
 
             <div class="settings-group">

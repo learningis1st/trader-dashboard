@@ -24,17 +24,12 @@ export function setupSettingsModal() {
     const cancelBtn = document.getElementById('settings-cancel');
     const saveBtn = document.getElementById('settings-save');
 
-    // Value display elements
-    const refreshValue = document.getElementById('refresh-rate-value');
+    // Value display elements for sliders
     const widthValue = document.getElementById('widget-width-value');
     const heightValue = document.getElementById('widget-height-value');
     const precisionValue = document.getElementById('decimal-precision-value');
 
-    // Live update functions
-    const updateRefreshDisplay = () => {
-        refreshValue.textContent = input.value + 'ms';
-        updateSliderTrack(input);
-    };
+    // Live update functions for sliders
     const updateWidthDisplay = () => {
         widthValue.textContent = widthInput.value;
         updateSliderTrack(widthInput);
@@ -48,8 +43,7 @@ export function setupSettingsModal() {
         updateSliderTrack(precisionInput);
     };
 
-    // Add input listeners for live updates
-    input.addEventListener('input', updateRefreshDisplay);
+    // Add input listeners for live updates (sliders only)
     widthInput.addEventListener('input', updateWidthDisplay);
     heightInput.addEventListener('input', updateHeightDisplay);
     precisionInput.addEventListener('input', updatePrecisionDisplay);
@@ -60,8 +54,7 @@ export function setupSettingsModal() {
         heightInput.value = state.DEFAULT_WIDGET_HEIGHT;
         precisionInput.value = state.DECIMAL_PRECISION;
 
-        // Update displays
-        updateRefreshDisplay();
+        // Update slider displays
         updateWidthDisplay();
         updateHeightDisplay();
         updatePrecisionDisplay();
