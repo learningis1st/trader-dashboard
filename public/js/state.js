@@ -2,22 +2,22 @@ import { state } from './config.js';
 import { unescapeHtml } from './utils.js';
 import { addSymbolWidget } from './widgets.js';
 
-let layoutSaveDebounce = null;
+let saveDebounceTimeout = null;
 
 export function saveState() {
     if (state.isRestoring) return;
 
     // Debounce rapid changes (e.g., during drag)
-    if (layoutSaveDebounce) clearTimeout(layoutSaveDebounce);
+    if (saveDebounceTimeout) clearTimeout(saveDebounceTimeout);
 
-    layoutSaveDebounce = setTimeout(() => {
-        const layout = [];
-        state.grid.engine.nodes.forEach(node => {
-            layout.push({
-                symbol: unescapeHtml(node.id),
-                x: node.x, y: node.y, w: node.w, h: node.h
-            });
-        });
+    saveDebounceTimeout = setTimeout(() => {
+        const layout = state.grid.engine.nodes.map(node => ({
+            symbol: unescapeHtml(node.id),
+            x: node.x,
+            y: node.y,
+            w: node.w,
+            h: node.h
+        }));
 
         localStorage.setItem('trader_dashboard_layout', JSON.stringify(layout));
 

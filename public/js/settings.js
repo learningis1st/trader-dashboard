@@ -6,6 +6,13 @@ import {
 } from './config.js';
 import { startRefreshInterval, fetchData } from './data.js';
 
+function clamp(value, min, max) {
+    const num = parseInt(value, 10);
+    if (isNaN(num) || num < min) return min;
+    if (num > max) return max;
+    return num;
+}
+
 function updateSliderTrack(slider) {
     const min = parseFloat(slider.min);
     const max = parseFloat(slider.max);
@@ -91,38 +98,10 @@ function saveSettingsFromModal() {
     const heightInput = document.getElementById('widget-height-input');
     const precisionInput = document.getElementById('decimal-precision-input');
 
-    let newRate = parseInt(input.value, 10);
-    if (isNaN(newRate) || newRate < MIN_REFRESH_RATE) {
-        newRate = MIN_REFRESH_RATE;
-    } else if (newRate > MAX_REFRESH_RATE) {
-        newRate = MAX_REFRESH_RATE;
-    }
-
-    let newWidth = parseInt(widthInput.value, 10);
-    if (isNaN(newWidth) || newWidth < MIN_WIDGET_SIZE) {
-        newWidth = MIN_WIDGET_SIZE;
-    } else if (newWidth > MAX_WIDGET_SIZE) {
-        newWidth = MAX_WIDGET_SIZE;
-    }
-
-    let newHeight = parseInt(heightInput.value, 10);
-    if (isNaN(newHeight) || newHeight < MIN_WIDGET_SIZE) {
-        newHeight = MIN_WIDGET_SIZE;
-    } else if (newHeight > MAX_WIDGET_SIZE) {
-        newHeight = MAX_WIDGET_SIZE;
-    }
-
-    let newPrecision = parseInt(precisionInput.value, 10);
-    if (isNaN(newPrecision) || newPrecision < MIN_DECIMAL_PRECISION) {
-        newPrecision = MIN_DECIMAL_PRECISION;
-    } else if (newPrecision > MAX_DECIMAL_PRECISION) {
-        newPrecision = MAX_DECIMAL_PRECISION;
-    }
-
-    state.REFRESH_RATE = newRate;
-    state.DEFAULT_WIDGET_WIDTH = newWidth;
-    state.DEFAULT_WIDGET_HEIGHT = newHeight;
-    state.DECIMAL_PRECISION = newPrecision;
+    state.REFRESH_RATE = clamp(input.value, MIN_REFRESH_RATE, MAX_REFRESH_RATE);
+    state.DEFAULT_WIDGET_WIDTH = clamp(widthInput.value, MIN_WIDGET_SIZE, MAX_WIDGET_SIZE);
+    state.DEFAULT_WIDGET_HEIGHT = clamp(heightInput.value, MIN_WIDGET_SIZE, MAX_WIDGET_SIZE);
+    state.DECIMAL_PRECISION = clamp(precisionInput.value, MIN_DECIMAL_PRECISION, MAX_DECIMAL_PRECISION);
 
     saveSettings();
     startRefreshInterval();
@@ -132,24 +111,25 @@ function saveSettingsFromModal() {
 
 export function loadSettings() {
     const raw = localStorage.getItem('trader_dashboard_settings');
-    if (raw) {
-        try {
-            const settings = JSON.parse(raw);
-            if (settings.refreshRate >= MIN_REFRESH_RATE && settings.refreshRate <= MAX_REFRESH_RATE) {
-                state.REFRESH_RATE = settings.refreshRate;
-            }
-            if (settings.defaultWidgetWidth >= MIN_WIDGET_SIZE && settings.defaultWidgetWidth <= MAX_WIDGET_SIZE) {
-                state.DEFAULT_WIDGET_WIDTH = settings.defaultWidgetWidth;
-            }
-            if (settings.defaultWidgetHeight >= MIN_WIDGET_SIZE && settings.defaultWidgetHeight <= MAX_WIDGET_SIZE) {
-                state.DEFAULT_WIDGET_HEIGHT = settings.defaultWidgetHeight;
-            }
-            if (settings.decimalPrecision >= MIN_DECIMAL_PRECISION && settings.decimalPrecision <= MAX_DECIMAL_PRECISION) {
-                state.DECIMAL_PRECISION = settings.decimalPrecision;
-            }
-        } catch (e) {
-            console.error("Failed to parse settings:", e);
+    if (!raw) return;
+
+    try {
+        const settings = JSON.parse(raw);
+
+        if (settings.refreshRate) {
+            state.REFRESH_RATE = clamp(settings.refreshRate, MIN_REFRESH_RATE, MAX_REFRESH_RATE);
         }
+        if (settings.defaultWidgetWidth) {
+            state.DEFAULT_WIDGET_WIDTH = clamp(settings.defaultWidgetWidth, MIN_WIDGET_SIZE, MAX_WIDGET_SIZE);
+        }
+        if (settings.defaultWidgetHeight) {
+            state.DEFAULT_WIDGET_HEIGHT = clamp(settings.defaultWidgetHeight, MIN_WIDGET_SIZE, MAX_WIDGET_SIZE);
+        }
+        if (settings.decimalPrecision) {
+            state.DECIMAL_PRECISION = clamp(settings.decimalPrecision, MIN_DECIMAL_PRECISION, MAX_DECIMAL_PRECISION);
+        }
+    } catch (e) {
+        console.error("Failed to parse settings:", e);
     }
 }
 

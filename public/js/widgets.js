@@ -36,42 +36,51 @@ export function setupMagicInput() {
     });
 }
 
-export function addSymbolWidget(symbol, node = null) {
-    if (state.symbolList.includes(symbol)) return;
-    state.symbolList.push(symbol);
-
-    const safeSymbol = escapeHtml(symbol);
-
-    const widgetHtml = `
+function createWidgetHtml(safeSymbol) {
+    return `
         <div class="h-full w-full p-4 flex flex-col justify-between relative group widget-container" id="widget-${safeSymbol}">
             <div class="flex justify-between items-start">
                 <span class="responsive-symbol font-bold text-gray-100 cursor-pointer hover:text-blue-400 transition-colors" 
                       data-symbol="${safeSymbol}"
-                      onclick="window.widgetActions.editTicker(this.dataset.symbol, this)">${safeSymbol}</span>
-                <button data-symbol="${safeSymbol}" onclick="window.widgetActions.removeSymbol(this.dataset.symbol)" class="remove-btn opacity-0 transition-opacity text-gray-400 hover:text-red-500 p-1">
+                      onclick="window.widgetActions.editTicker(this.dataset.symbol, this)">
+                    ${safeSymbol}
+                </span>
+                <button data-symbol="${safeSymbol}" 
+                        onclick="window.widgetActions.removeSymbol(this.dataset.symbol)" 
+                        class="remove-btn opacity-0 transition-opacity text-gray-400 hover:text-red-500 p-1">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
             <div class="flex-grow flex items-center justify-center">
                 <span class="responsive-price font-mono font-bold text-gray-300 tracking-tighter cursor-pointer" 
                       id="price-${safeSymbol}"
                       data-symbol="${safeSymbol}"
-                      ondblclick="window.widgetActions.openTradingView(this.dataset.symbol)">---</span>
+                      ondblclick="window.widgetActions.openTradingView(this.dataset.symbol)">
+                    ---
+                </span>
             </div>
-            
             <div class="flex justify-between items-end font-medium">
                 <span id="chg-${safeSymbol}" class="responsive-detail text-gray-500">--</span>
                 <span id="pct-${safeSymbol}" class="responsive-detail text-gray-500">--%</span>
             </div>
         </div>
     `;
+}
 
-    const options = node || { w: state.DEFAULT_WIDGET_WIDTH, h: state.DEFAULT_WIDGET_HEIGHT, autoPosition: true };
+export function addSymbolWidget(symbol, node = null) {
+    if (state.symbolList.includes(symbol)) return;
+    state.symbolList.push(symbol);
+
+    const safeSymbol = escapeHtml(symbol);
+    const options = node || {
+        w: state.DEFAULT_WIDGET_WIDTH,
+        h: state.DEFAULT_WIDGET_HEIGHT,
+        autoPosition: true
+    };
 
     state.grid.addWidget({
         ...options,
-        content: widgetHtml,
+        content: createWidgetHtml(safeSymbol),
         id: safeSymbol
     });
 
@@ -80,8 +89,10 @@ export function addSymbolWidget(symbol, node = null) {
 }
 
 export function removeSymbol(symbol) {
-    const el = document.getElementById(`widget-${symbol}`).closest('.grid-stack-item');
-    state.grid.removeWidget(el);
+    const widgetEl = document.getElementById(`widget-${symbol}`)?.closest('.grid-stack-item');
+    if (!widgetEl) return;
+
+    state.grid.removeWidget(widgetEl);
     state.symbolList = state.symbolList.filter(s => s !== symbol);
     delete state.previousPrices[symbol];
     saveState();
@@ -114,21 +125,22 @@ export function editTicker(oldSymbol, el) {
             return;
         }
 
-        const widgetEl = document.getElementById(`widget-${oldSymbol}`).closest('.grid-stack-item');
-        const node = widgetEl.gridstackNode;
+        const widgetEl = document.getElementById(`widget-${oldSymbol}`)?.closest('.grid-stack-item');
+        const node = widgetEl?.gridstackNode;
 
-        if (node) {
-            const options = { x: node.x, y: node.y, w: node.w, h: node.h };
-
-            state.grid.removeWidget(widgetEl);
-            state.symbolList = state.symbolList.filter(s => s !== oldSymbol);
-            delete state.previousPrices[oldSymbol];
-
-            addSymbolWidget(newSymbol, options);
-            fetchData();
-        } else {
+        if (!node) {
             parent.replaceChild(el, input);
+            return;
         }
+
+        const options = { x: node.x, y: node.y, w: node.w, h: node.h };
+
+        state.grid.removeWidget(widgetEl);
+        state.symbolList = state.symbolList.filter(s => s !== oldSymbol);
+        delete state.previousPrices[oldSymbol];
+
+        addSymbolWidget(newSymbol, options);
+        fetchData();
     };
 
     input.addEventListener('blur', finish);
