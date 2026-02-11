@@ -168,6 +168,22 @@ body {
     margin-top: 4px;
 }
 
+.settings-row {
+    display: flex;
+    gap: 12px;
+}
+
+.settings-field {
+    flex: 1;
+}
+
+.settings-sublabel {
+    display: block;
+    font-size: 11px;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
 .settings-actions {
     display: flex;
     gap: 12px;

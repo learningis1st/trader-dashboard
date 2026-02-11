@@ -59,6 +59,33 @@
                 <div class="settings-hint">Range: 500ms - 10000ms. How often to fetch new price data.</div>
             </div>
 
+            <div class="settings-group">
+                <label class="settings-label">Default Widget Size</label>
+                <div class="settings-row">
+                    <div class="settings-field">
+                        <label class="settings-sublabel" for="widget-width-input">Width</label>
+                        <input type="number"
+                               id="widget-width-input"
+                               class="settings-input"
+                               min="1"
+                               max="12"
+                               step="1"
+                               placeholder="2">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-sublabel" for="widget-height-input">Height</label>
+                        <input type="number"
+                               id="widget-height-input"
+                               class="settings-input"
+                               min="1"
+                               max="12"
+                               step="1"
+                               placeholder="2">
+                    </div>
+                </div>
+                <div class="settings-hint">Range: 1 - 12 grid units. Size for newly added widgets.</div>
+            </div>
+
             <!-- Add more settings groups here in the future -->
 
             <div class="settings-actions">

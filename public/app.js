@@ -3,6 +3,11 @@ let REFRESH_RATE = 1000;
 const MIN_REFRESH_RATE = 500;
 const MAX_REFRESH_RATE = 10000;
 
+const MIN_WIDGET_SIZE = 1;
+const MAX_WIDGET_SIZE = 12;
+let DEFAULT_WIDGET_WIDTH = 2;
+let DEFAULT_WIDGET_HEIGHT = 2;
+
 let grid = null;
 let isRestoring = false;
 let symbolList = [];
@@ -45,11 +50,15 @@ function setupSettingsModal() {
     const btn = document.getElementById('settings-btn');
     const modal = document.getElementById('settings-modal');
     const input = document.getElementById('refresh-rate-input');
+    const widthInput = document.getElementById('widget-width-input');
+    const heightInput = document.getElementById('widget-height-input');
     const cancelBtn = document.getElementById('settings-cancel');
     const saveBtn = document.getElementById('settings-save');
 
     btn.addEventListener('click', () => {
         input.value = REFRESH_RATE;
+        widthInput.value = DEFAULT_WIDGET_WIDTH;
+        heightInput.value = DEFAULT_WIDGET_HEIGHT;
         modal.classList.remove('hidden');
         input.focus();
         input.select();
@@ -71,6 +80,16 @@ function setupSettingsModal() {
         }
     });
 
+    [widthInput, heightInput].forEach(inp => {
+        inp.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                saveSettingsFromModal();
+            } else if (e.key === 'Escape') {
+                modal.classList.add('hidden');
+            }
+        });
+    });
+
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             modal.classList.add('hidden');
@@ -81,16 +100,34 @@ function setupSettingsModal() {
 function saveSettingsFromModal() {
     const modal = document.getElementById('settings-modal');
     const input = document.getElementById('refresh-rate-input');
+    const widthInput = document.getElementById('widget-width-input');
+    const heightInput = document.getElementById('widget-height-input');
 
     let newRate = parseInt(input.value, 10);
-
     if (isNaN(newRate) || newRate < MIN_REFRESH_RATE) {
         newRate = MIN_REFRESH_RATE;
     } else if (newRate > MAX_REFRESH_RATE) {
         newRate = MAX_REFRESH_RATE;
     }
 
+    let newWidth = parseInt(widthInput.value, 10);
+    if (isNaN(newWidth) || newWidth < MIN_WIDGET_SIZE) {
+        newWidth = MIN_WIDGET_SIZE;
+    } else if (newWidth > MAX_WIDGET_SIZE) {
+        newWidth = MAX_WIDGET_SIZE;
+    }
+
+    let newHeight = parseInt(heightInput.value, 10);
+    if (isNaN(newHeight) || newHeight < MIN_WIDGET_SIZE) {
+        newHeight = MIN_WIDGET_SIZE;
+    } else if (newHeight > MAX_WIDGET_SIZE) {
+        newHeight = MAX_WIDGET_SIZE;
+    }
+
     REFRESH_RATE = newRate;
+    DEFAULT_WIDGET_WIDTH = newWidth;
+    DEFAULT_WIDGET_HEIGHT = newHeight;
+
     saveSettings();
     startRefreshInterval();
     modal.classList.add('hidden');
@@ -105,6 +142,12 @@ function loadSettings() {
             if (settings.refreshRate && settings.refreshRate >= MIN_REFRESH_RATE && settings.refreshRate <= MAX_REFRESH_RATE) {
                 REFRESH_RATE = settings.refreshRate;
             }
+            if (settings.defaultWidgetWidth && settings.defaultWidgetWidth >= MIN_WIDGET_SIZE && settings.defaultWidgetWidth <= MAX_WIDGET_SIZE) {
+                DEFAULT_WIDGET_WIDTH = settings.defaultWidgetWidth;
+            }
+            if (settings.defaultWidgetHeight && settings.defaultWidgetHeight >= MIN_WIDGET_SIZE && settings.defaultWidgetHeight <= MAX_WIDGET_SIZE) {
+                DEFAULT_WIDGET_HEIGHT = settings.defaultWidgetHeight;
+            }
         } catch (e) {
             console.error("Failed to parse settings:", e);
         }
@@ -113,7 +156,9 @@ function loadSettings() {
 
 function saveSettings() {
     const settings = {
-        refreshRate: REFRESH_RATE
+        refreshRate: REFRESH_RATE,
+        defaultWidgetWidth: DEFAULT_WIDGET_WIDTH,
+        defaultWidgetHeight: DEFAULT_WIDGET_HEIGHT
     };
     localStorage.setItem('trader_dashboard_settings', JSON.stringify(settings));
 }
@@ -211,7 +256,7 @@ function addSymbolWidget(symbol, node = null) {
         </div>
     `;
 
-    const options = node || { w: 2, h: 2, autoPosition: true };
+    const options = node || { w: DEFAULT_WIDGET_WIDTH, h: DEFAULT_WIDGET_HEIGHT, autoPosition: true };
 
     grid.addWidget({
         ...options,
