@@ -353,6 +353,14 @@ window.editTicker = function(oldSymbol, el) {
     input.select();
 };
 
+// --- Number Formatting Helper ---
+function formatNumber(num, maxDecimals) {
+    // Round to maxDecimals, then remove trailing zeros
+    const fixed = num.toFixed(maxDecimals);
+    // parseFloat removes trailing zeros, then convert back to string
+    return parseFloat(fixed).toString();
+}
+
 let isFetching = false;
 
 async function fetchData() {
@@ -422,9 +430,9 @@ function updateUI(data) {
 
                 previousPrices[symbol] = currentPrice;
 
-                priceEl.innerText = currentPrice.toFixed(DECIMAL_PRECISION);
-                chgEl.innerText = (netChange > 0 ? '+' : '') + netChange.toFixed(DECIMAL_PRECISION);
-                pctEl.innerText = (netPercentChange > 0 ? '+' : '') + netPercentChange.toFixed(DECIMAL_PRECISION) + '%';
+                priceEl.innerText = formatNumber(currentPrice, DECIMAL_PRECISION);
+                chgEl.innerText = (netChange > 0 ? '+' : '') + formatNumber(netChange, DECIMAL_PRECISION);
+                pctEl.innerText = (netPercentChange > 0 ? '+' : '') + formatNumber(netPercentChange, DECIMAL_PRECISION) + '%';
 
                 [priceEl, chgEl, pctEl].forEach(el => {
                     el.classList.remove('text-[#4ade80]', 'text-[#f87171]', 'text-gray-300', 'text-gray-500');
