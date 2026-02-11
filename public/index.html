@@ -56,54 +56,58 @@
             </div>
 
             <div class="settings-group">
-                <label class="settings-label" for="refresh-rate-input">Refresh Rate (ms)</label>
-                <input type="number"
+                <label class="settings-label" for="refresh-rate-input">
+                    Refresh Rate: <span id="refresh-rate-value" class="settings-value">1000ms</span>
+                </label>
+                <input type="range"
                        id="refresh-rate-input"
-                       class="settings-input"
+                       class="settings-slider"
                        min="500"
                        max="10000"
-                       step="100"
-                       placeholder="1000">
-                <div class="settings-hint">Range: 500ms - 10000ms. How often to fetch new price data.</div>
+                       step="100">
+                <div class="settings-hint">How often to fetch new price data.</div>
             </div>
 
             <div class="settings-group">
                 <label class="settings-label">Default Widget Size</label>
                 <div class="settings-row">
                     <div class="settings-field">
-                        <label class="settings-sublabel" for="widget-width-input">Width</label>
-                        <input type="number"
+                        <label class="settings-sublabel" for="widget-width-input">
+                            Width: <span id="widget-width-value" class="settings-value">2</span>
+                        </label>
+                        <input type="range"
                                id="widget-width-input"
-                               class="settings-input"
+                               class="settings-slider"
                                min="1"
                                max="12"
-                               step="1"
-                               placeholder="2">
+                               step="1">
                     </div>
                     <div class="settings-field">
-                        <label class="settings-sublabel" for="widget-height-input">Height</label>
-                        <input type="number"
+                        <label class="settings-sublabel" for="widget-height-input">
+                            Height: <span id="widget-height-value" class="settings-value">2</span>
+                        </label>
+                        <input type="range"
                                id="widget-height-input"
-                               class="settings-input"
+                               class="settings-slider"
                                min="1"
                                max="12"
-                               step="1"
-                               placeholder="2">
+                               step="1">
                     </div>
                 </div>
-                <div class="settings-hint">Range: 1 - 12 grid units. Size for newly added widgets.</div>
+                <div class="settings-hint">Size for newly added widgets (1-12 grid units).</div>
             </div>
 
             <div class="settings-group">
-                <label class="settings-label" for="decimal-precision-input">Decimal Precision</label>
-                <input type="number"
+                <label class="settings-label" for="decimal-precision-input">
+                    Decimal Precision: <span id="decimal-precision-value" class="settings-value">2</span>
+                </label>
+                <input type="range"
                        id="decimal-precision-input"
-                       class="settings-input"
+                       class="settings-slider"
                        min="2"
                        max="6"
-                       step="1"
-                       placeholder="2">
-                <div class="settings-hint">Range: 2 - 6. Decimal places for prices. Assets with smaller values automatically use more precision to show meaningful changes.</div>
+                       step="1">
+                <div class="settings-hint">Decimal places for prices. Smaller values auto-adjust for precision.</div>
             </div>
 
             <!-- Add more settings groups here in the future -->

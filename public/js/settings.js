@@ -6,6 +6,14 @@ import {
 } from './config.js';
 import { startRefreshInterval, fetchData } from './data.js';
 
+function updateSliderTrack(slider) {
+    const min = parseFloat(slider.min);
+    const max = parseFloat(slider.max);
+    const val = parseFloat(slider.value);
+    const percent = ((val - min) / (max - min)) * 100;
+    slider.style.setProperty('--value-percent', percent + '%');
+}
+
 export function setupSettingsModal() {
     const btn = document.getElementById('settings-btn');
     const modal = document.getElementById('settings-modal');
@@ -16,11 +24,48 @@ export function setupSettingsModal() {
     const cancelBtn = document.getElementById('settings-cancel');
     const saveBtn = document.getElementById('settings-save');
 
+    // Value display elements
+    const refreshValue = document.getElementById('refresh-rate-value');
+    const widthValue = document.getElementById('widget-width-value');
+    const heightValue = document.getElementById('widget-height-value');
+    const precisionValue = document.getElementById('decimal-precision-value');
+
+    // Live update functions
+    const updateRefreshDisplay = () => {
+        refreshValue.textContent = input.value + 'ms';
+        updateSliderTrack(input);
+    };
+    const updateWidthDisplay = () => {
+        widthValue.textContent = widthInput.value;
+        updateSliderTrack(widthInput);
+    };
+    const updateHeightDisplay = () => {
+        heightValue.textContent = heightInput.value;
+        updateSliderTrack(heightInput);
+    };
+    const updatePrecisionDisplay = () => {
+        precisionValue.textContent = precisionInput.value;
+        updateSliderTrack(precisionInput);
+    };
+
+    // Add input listeners for live updates
+    input.addEventListener('input', updateRefreshDisplay);
+    widthInput.addEventListener('input', updateWidthDisplay);
+    heightInput.addEventListener('input', updateHeightDisplay);
+    precisionInput.addEventListener('input', updatePrecisionDisplay);
+
     btn.addEventListener('click', () => {
         input.value = state.REFRESH_RATE;
         widthInput.value = state.DEFAULT_WIDGET_WIDTH;
         heightInput.value = state.DEFAULT_WIDGET_HEIGHT;
         precisionInput.value = state.DECIMAL_PRECISION;
+
+        // Update displays
+        updateRefreshDisplay();
+        updateWidthDisplay();
+        updateHeightDisplay();
+        updatePrecisionDisplay();
+
         modal.classList.remove('hidden');
         input.focus();
         input.select();
@@ -34,26 +79,15 @@ export function setupSettingsModal() {
         saveSettingsFromModal();
     });
 
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            saveSettingsFromModal();
-        } else if (e.key === 'Escape') {
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
             modal.classList.add('hidden');
         }
     });
 
-    [widthInput, heightInput, precisionInput].forEach(inp => {
-        inp.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                saveSettingsFromModal();
-            } else if (e.key === 'Escape') {
-                modal.classList.add('hidden');
-            }
-        });
-    });
-
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
+    // Handle Escape key to close modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
             modal.classList.add('hidden');
         }
     });
@@ -137,4 +171,3 @@ export function saveSettings() {
     };
     localStorage.setItem('trader_dashboard_settings', JSON.stringify(settings));
 }
-
