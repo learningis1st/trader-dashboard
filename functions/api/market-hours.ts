@@ -49,8 +49,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         return jsonResponse({ date: todayET, data: marketData });
     } catch (error) {
         console.error("Market hours error:", error);
-        // On error, return null data - client will assume market is open
         return jsonResponse({ date: todayET, data: null, error: "Failed to fetch" }, 500);
     }
 };
-

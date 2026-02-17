@@ -50,39 +50,22 @@ function isTimeInSession(sessionHours, now) {
     });
 }
 
-export function isMarketInSession(marketKey) {
-    if (!marketHoursCache || !marketHoursCache[marketKey]) return true; // Default to open
+function isMarketInSession(marketKey) {
+    if (!marketHoursCache?.[marketKey]) return true;
 
     const now = Date.now();
-    const marketData = marketHoursCache[marketKey];
-
-    for (const product of Object.values(marketData)) {
-        if (isTimeInSession(product.sessionHours, now)) {
-            return true;
-        }
-    }
-
-    return false;
+    return Object.values(marketHoursCache[marketKey])
+        .some(product => isTimeInSession(product.sessionHours, now));
 }
 
 export function getSymbolsToFetch(symbolAssetMap) {
-    const symbolsToFetch = [];
-
-    for (const [symbol, assetType] of Object.entries(symbolAssetMap)) {
-        // Always fetch FUTURE and FOREX
-        if (ALWAYS_FETCH_TYPES.includes(assetType)) {
-            symbolsToFetch.push(symbol);
-            continue;
-        }
-
-        // Check market hours for other types
-        const marketKey = ASSET_TO_MARKET_MAP[assetType];
-        if (!marketKey || isMarketInSession(marketKey)) {
-            symbolsToFetch.push(symbol);
-        }
-    }
-
-    return symbolsToFetch;
+    return Object.entries(symbolAssetMap)
+        .filter(([, assetType]) => {
+            if (ALWAYS_FETCH_TYPES.includes(assetType)) return true;
+            const marketKey = ASSET_TO_MARKET_MAP[assetType];
+            return !marketKey || isMarketInSession(marketKey);
+        })
+        .map(([symbol]) => symbol);
 }
 
 export function getMarketHoursCache() {

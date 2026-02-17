@@ -21,49 +21,38 @@ export function startRefreshInterval() {
 export async function fetchData() {
     updateEmptyHint();
 
-    if (state.symbolList.length === 0) return;
-    if (state.isFetching) return;
+    if (state.symbolList.length === 0 || state.isFetching) return;
 
     state.isFetching = true;
 
     try {
-        // Ensure market hours are loaded
         await fetchMarketHours();
 
-        const uncachedSymbols = state.symbolList.filter(s => !state.assetTypeCache[s]);
+        // Separate cached and uncached symbols
+        const uncached = state.symbolList.filter(s => !state.assetTypeCache[s]);
+        const cached = state.symbolList.filter(s => state.assetTypeCache[s]);
 
-        // Always fetch uncached symbols first to learn their asset types and show data
-        if (uncachedSymbols.length > 0) {
-            console.debug("Fetching uncached symbols:", uncachedSymbols);
-            const data = await fetchQuote(uncachedSymbols);
+        // Always fetch uncached symbols to learn their asset types
+        if (uncached.length > 0) {
+            const data = await fetchQuote(uncached);
             if (data) {
                 updateAssetTypeCache(data);
                 updateUI(data);
             }
         }
 
-        // For cached symbols, only fetch those whose markets are open
-        const cachedSymbols = state.symbolList.filter(s => state.assetTypeCache[s]);
+        // For cached symbols, only fetch those with open markets
+        if (cached.length > 0) {
+            const symbolAssetMap = Object.fromEntries(
+                cached.map(s => [s, state.assetTypeCache[s]])
+            );
+            const toFetch = getSymbolsToFetch(symbolAssetMap);
 
-        if (cachedSymbols.length > 0) {
-            const symbolAssetMap = {};
-            for (const symbol of cachedSymbols) {
-                symbolAssetMap[symbol] = state.assetTypeCache[symbol];
-            }
-
-            const symbolsToFetch = getSymbolsToFetch(symbolAssetMap);
-
-            if (symbolsToFetch.length > 0) {
-                console.debug(`Fetching ${symbolsToFetch.length} cached symbols with open markets`);
-                const data = await fetchQuote(symbolsToFetch);
-                if (data) {
-                    updateUI(data);
-                }
-            } else {
-                console.debug("No cached symbols have open markets");
+            if (toFetch.length > 0) {
+                const data = await fetchQuote(toFetch);
+                if (data) updateUI(data);
             }
         }
-
     } catch (error) {
         console.error("Fetch failed:", error);
     } finally {
@@ -72,29 +61,22 @@ export async function fetchData() {
 }
 
 async function fetchQuote(symbols) {
-    try {
-        const symbolsParam = symbols.map(s => encodeURIComponent(s)).join(',');
-        const response = await fetch(`${WORKER_URL}/quote?symbols=${symbolsParam}&fields=quote`);
+    const symbolsParam = symbols.map(encodeURIComponent).join(',');
+    const response = await fetch(`${WORKER_URL}/quote?symbols=${symbolsParam}&fields=quote`);
 
-        if (response.redirected && response.url.includes('/login')) {
-            window.location.reload();
-            return null;
-        }
-
-        if (!response.ok) throw new Error('API Error');
-
-        return await response.json();
-    } catch (error) {
-        console.error("Quote fetch failed:", error);
+    if (response.redirected && response.url.includes('/login')) {
+        window.location.reload();
         return null;
     }
+
+    if (!response.ok) throw new Error('API Error');
+    return response.json();
 }
 
 function updateAssetTypeCache(data) {
     for (const [symbol, info] of Object.entries(data)) {
         if (info.assetMainType) {
             state.assetTypeCache[symbol] = info.assetMainType;
-            console.debug(`Cached asset type: ${symbol} -> ${info.assetMainType}`);
         }
     }
 }
@@ -107,31 +89,26 @@ export function updateEmptyHint() {
 }
 
 function updateUI(data) {
-    Object.keys(data).forEach(symbol => {
-        try {
-            const quote = data[symbol].quote;
-            if (!quote) return;
+    for (const [symbol, { quote }] of Object.entries(data)) {
+        if (!quote) continue;
 
-            const priceEl = document.getElementById(`price-${symbol}`);
-            const chgEl = document.getElementById(`chg-${symbol}`);
-            const pctEl = document.getElementById(`pct-${symbol}`);
+        const priceEl = document.getElementById(`price-${symbol}`);
+        const chgEl = document.getElementById(`chg-${symbol}`);
+        const pctEl = document.getElementById(`pct-${symbol}`);
 
-            if (!priceEl || !chgEl || !pctEl) return;
+        if (!priceEl || !chgEl || !pctEl) continue;
 
-            const currentPrice = quote.lastPrice || 0;
-            const netChange = quote.netChange || 0;
-            const netPercentChange = quote.netPercentChange || quote.futurePercentChange || 0;
-            const oldPrice = state.previousPrices[symbol];
+        const currentPrice = quote.lastPrice || 0;
+        const netChange = quote.netChange || 0;
+        const netPercentChange = quote.netPercentChange || quote.futurePercentChange || 0;
+        const oldPrice = state.previousPrices[symbol];
 
-            handlePriceFlash(priceEl, symbol, currentPrice, oldPrice);
-            state.previousPrices[symbol] = currentPrice;
+        handlePriceFlash(priceEl, symbol, currentPrice, oldPrice);
+        state.previousPrices[symbol] = currentPrice;
 
-            updatePriceDisplay(priceEl, chgEl, pctEl, currentPrice, netChange, netPercentChange);
-            applyColorClasses(priceEl, chgEl, pctEl, netChange);
-        } catch (err) {
-            console.error(`Error updating symbol ${symbol}:`, err);
-        }
-    });
+        updatePriceDisplay(priceEl, chgEl, pctEl, currentPrice, netChange, netPercentChange);
+        applyColorClasses(priceEl, chgEl, pctEl, netChange);
+    }
 }
 
 function handlePriceFlash(priceEl, symbol, currentPrice, oldPrice) {
@@ -142,7 +119,7 @@ function handlePriceFlash(priceEl, symbol, currentPrice, oldPrice) {
     }
 
     priceEl.classList.remove('flash-up', 'flash-down');
-    void priceEl.offsetWidth; // Force reflow
+    void priceEl.offsetWidth;
 
     priceEl.classList.add(currentPrice > oldPrice ? 'flash-up' : 'flash-down');
 
@@ -154,7 +131,7 @@ function handlePriceFlash(priceEl, symbol, currentPrice, oldPrice) {
 
 function updatePriceDisplay(priceEl, chgEl, pctEl, currentPrice, netChange, netPercentChange) {
     const pricePrecision = getAppropriateDecimals(currentPrice, state.DECIMAL_PRECISION);
-    const sign = (val) => val > 0 ? '+' : '';
+    const sign = val => val > 0 ? '+' : '';
 
     priceEl.innerText = formatPrice(currentPrice, state.DECIMAL_PRECISION);
     chgEl.innerText = sign(netChange) + formatNumber(netChange, pricePrecision);
