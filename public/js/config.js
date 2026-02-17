@@ -6,9 +6,6 @@ export const LIMITS = {
     DECIMAL_PRECISION: { MIN: 2, MAX: 6 }
 };
 
-// Asset types that are always fetched regardless of market hours
-export const ALWAYS_FETCH_TYPES = ['FUTURE', 'FOREX'];
-
 export const ASSET_TO_MARKET_MAP = {
     EQUITY: 'equity',
     OPTION: 'option',
@@ -17,7 +14,6 @@ export const ASSET_TO_MARKET_MAP = {
     FOREX: 'forex'
 };
 
-// Mutable state
 export const state = {
     // User settings
     REFRESH_RATE: 1000,

@@ -1,4 +1,4 @@
-import { ALWAYS_FETCH_TYPES, ASSET_TO_MARKET_MAP } from './config.js';
+import { ASSET_TO_MARKET_MAP } from './config.js';
 
 let cache = null;
 
@@ -39,21 +39,48 @@ function isWithinSessionHours(sessionHours) {
     });
 }
 
-function isMarketOpen(marketKey) {
-    if (!cache?.[marketKey]) return true;
-    return Object.values(cache[marketKey]).some(product =>
-        marketKey === 'equity'
-            ? product.isOpen
-            : product.isOpen && isWithinSessionHours(product.sessionHours)
-    );
+function isWeekendGap() {
+    const now = new Date();
+    const day = now.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    const hour = now.getUTCHours();
+
+    // Saturday is always weekend
+    if (day === 6) return true;
+
+    // Friday after 21:00 UTC (approx 5PM EST) is weekend start
+    if (day === 5 && hour >= 21) return true;
+
+    // Sunday before 22:00 UTC (approx 6PM EST) is weekend end
+    if (day === 0 && hour < 22) return true;
+
+    return false;
 }
 
 export function getSymbolsToFetch(symbolAssetMap) {
     return Object.entries(symbolAssetMap)
         .filter(([, assetType]) => {
-            if (ALWAYS_FETCH_TYPES.includes(assetType)) return true;
             const marketKey = ASSET_TO_MARKET_MAP[assetType];
-            return !marketKey || isMarketOpen(marketKey);
+
+            // Equity: Only check isOpen (24/5 trading)
+            if (marketKey === 'equity') {
+                if (!cache?.[marketKey]) return false;
+                return Object.values(cache[marketKey]).some(product =>
+                    product.isOpen
+                );
+            }
+
+            // Strict Session Checks: Option, Bond
+            // Must be explicitly Open AND within an active session
+            if (['option', 'bond'].includes(marketKey)) {
+                if (!cache?.[marketKey]) return false;
+                return Object.values(cache[marketKey]).some(product =>
+                    product.isOpen && isWithinSessionHours(product.sessionHours)
+                );
+            }
+
+            // Continuous Trading: Future, Forex
+            // Fetch always, except during the weekend gap
+            return !isWeekendGap();
         })
         .map(([symbol]) => symbol);
 }
