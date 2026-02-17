@@ -1,4 +1,23 @@
-import { state } from './config.js';
+export const state = {
+    // User settings
+    REFRESH_RATE: 1000,
+    DEFAULT_WIDGET_WIDTH: 2,
+    DEFAULT_WIDGET_HEIGHT: 2,
+    DECIMAL_PRECISION: 2,
+
+    // Runtime state
+    grid: null,
+    isRestoring: false,
+    isFetching: false,
+    refreshInterval: null,
+
+    // Data caches
+    symbolList: [],
+    previousPrices: {},
+    assetTypeCache: {},
+    flashTimeouts: {}
+};
+
 import { unescapeHtml } from './utils.js';
 import { addSymbolWidget } from './widgets.js';
 

@@ -1,4 +1,5 @@
-import { WORKER_URL, state } from './config.js';
+import { WORKER_URL } from './config.js';
+import { state } from './state.js';
 import { getAppropriateDecimals, formatPrice, formatNumber } from './utils.js';
 import { getSymbolsToFetch } from './market.js';
 

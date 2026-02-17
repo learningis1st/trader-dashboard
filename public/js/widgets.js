@@ -1,4 +1,4 @@
-import { state } from './config.js';
+import { state } from './state.js';
 import { escapeHtml } from './utils.js';
 import { saveState } from './state.js';
 import { fetchData, updateEmptyHint } from './data.js';
