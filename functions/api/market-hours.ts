@@ -2,7 +2,7 @@ interface Env {
     DB: D1Database;
 }
 
-const MARKET_HOURS_API = "https://finance.learningis1.st/markets?markets=equity,option,bond,forex";
+const MARKET_HOURS_API = "https://finance.learningis1.st/markets?markets=equity,option,bond";
 
 const jsonResponse = (data: unknown, status = 200) =>
     new Response(JSON.stringify(data), {
