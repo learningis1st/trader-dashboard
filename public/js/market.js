@@ -24,9 +24,26 @@ export async function fetchMarketHours() {
     }
 }
 
+function isWithinSessionHours(sessionHours) {
+    if (!sessionHours) return false;
+    const now = Date.now();
+    const allSessions = [
+        ...(sessionHours.preMarket || []),
+        ...(sessionHours.regularMarket || []),
+        ...(sessionHours.postMarket || [])
+    ];
+    return allSessions.some(session => {
+        const start = new Date(session.start).getTime();
+        const end = new Date(session.end).getTime();
+        return now >= start && now <= end;
+    });
+}
+
 function isMarketOpen(marketKey) {
     if (!cache?.[marketKey]) return true;
-    return Object.values(cache[marketKey]).some(product => product.isOpen);
+    return Object.values(cache[marketKey]).some(product =>
+        product.isOpen || isWithinSessionHours(product.sessionHours)
+    );
 }
 
 export function getSymbolsToFetch(symbolAssetMap) {
