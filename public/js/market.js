@@ -70,7 +70,15 @@ function isMarketInSession(marketKey) {
 
     for (const [product, productData] of Object.entries(marketData)) {
         console.log(`[Market] Product ${product}, isOpen: ${productData.isOpen}`);
+
+        // First check if we're in any session
         if (isTimeInSession(productData.sessionHours, now)) {
+            return true;
+        }
+
+        // Fallback: trust the isOpen field from the API
+        if (productData.isOpen) {
+            console.log(`[Market] ${marketKey} - using isOpen flag`);
             return true;
         }
     }
