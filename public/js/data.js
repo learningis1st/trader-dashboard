@@ -1,5 +1,6 @@
 import { WORKER_URL, state } from './config.js';
 import { getAppropriateDecimals, formatPrice, formatNumber } from './utils.js';
+import { shouldFetchData } from './market.js';
 
 const COLOR_CLASSES = {
     positive: 'text-[#4ade80]',
@@ -22,6 +23,12 @@ export async function fetchData() {
 
     if (state.symbolList.length === 0) return;
     if (state.isFetching) return;
+
+    const marketOpen = await shouldFetchData();
+    if (!marketOpen) {
+        console.debug("Market closed, skipping data fetch");
+        return;
+    }
 
     state.isFetching = true;
 
