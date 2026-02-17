@@ -2,15 +2,18 @@ import { state } from './config.js';
 import { unescapeHtml } from './utils.js';
 import { addSymbolWidget } from './widgets.js';
 
-let saveDebounceTimeout = null;
+const STORAGE_KEY = 'trader_dashboard_layout';
+const DEBOUNCE_LOCAL = 100;
+const DEBOUNCE_CLOUD = 1000;
+
+let localDebounce = null;
+let cloudDebounce = null;
 
 export function saveState() {
     if (state.isRestoring) return;
 
-    // Debounce rapid changes (e.g., during drag)
-    if (saveDebounceTimeout) clearTimeout(saveDebounceTimeout);
-
-    saveDebounceTimeout = setTimeout(() => {
+    clearTimeout(localDebounce);
+    localDebounce = setTimeout(() => {
         const layout = state.grid.engine.nodes.map(node => ({
             symbol: unescapeHtml(node.id),
             x: node.x,
@@ -19,18 +22,17 @@ export function saveState() {
             h: node.h
         }));
 
-        localStorage.setItem('trader_dashboard_layout', JSON.stringify(layout));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
 
-        if (state.saveTimeout) clearTimeout(state.saveTimeout);
-
-        state.saveTimeout = setTimeout(() => {
+        clearTimeout(cloudDebounce);
+        cloudDebounce = setTimeout(() => {
             fetch('/api/layout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(layout)
-            }).catch(err => console.error("Cloud save failed:", err));
-        }, 1000);
-    }, 100);
+            }).catch(err => console.error('Cloud save failed:', err));
+        }, DEBOUNCE_CLOUD);
+    }, DEBOUNCE_LOCAL);
 }
 
 export async function loadState() {
@@ -42,39 +44,36 @@ export async function loadState() {
             return;
         }
 
-        if (!res.ok) throw new Error("API unavailable");
+        if (!res.ok) throw new Error('API unavailable');
 
         const layout = await res.json();
-
         if (Array.isArray(layout)) {
             applyLayout(layout);
-            localStorage.setItem('trader_dashboard_layout', JSON.stringify(layout));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
             return;
         }
     } catch (e) {
-        console.warn("Cloud load failed, falling back to local:", e);
+        console.warn('Cloud load failed, falling back to local:', e);
     }
 
-    const raw = localStorage.getItem('trader_dashboard_layout');
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
         try {
             applyLayout(JSON.parse(raw));
-        } catch (e) { console.error("Local load failed", e); }
+        } catch (e) {
+            console.error('Local load failed:', e);
+        }
     }
 }
 
 function applyLayout(layout) {
     state.isRestoring = true;
-
     state.grid.batchUpdate();
     state.grid.removeAll();
     state.symbolList = [];
 
-    layout.forEach(item => {
-        if (item.symbol) addSymbolWidget(item.symbol, item);
-    });
+    layout.forEach(item => item.symbol && addSymbolWidget(item.symbol, item));
 
     state.grid.commit();
-
     state.isRestoring = false;
 }

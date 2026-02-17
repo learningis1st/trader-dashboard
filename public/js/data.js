@@ -2,19 +2,17 @@ import { WORKER_URL, state } from './config.js';
 import { getAppropriateDecimals, formatPrice, formatNumber } from './utils.js';
 import { getSymbolsToFetch } from './market.js';
 
-const COLOR_CLASSES = {
+const COLORS = {
     positive: 'text-[#4ade80]',
     negative: 'text-[#f87171]',
     neutral: 'text-gray-300',
     muted: 'text-gray-500'
 };
 
-const ALL_COLOR_CLASSES = Object.values(COLOR_CLASSES);
+const ALL_COLORS = Object.values(COLORS);
 
 export function startRefreshInterval() {
-    if (state.refreshInterval) {
-        clearInterval(state.refreshInterval);
-    }
+    clearInterval(state.refreshInterval);
     state.refreshInterval = setInterval(fetchData, state.REFRESH_RATE);
 }
 
@@ -26,41 +24,47 @@ export async function fetchData() {
     state.isFetching = true;
 
     try {
-        // Separate cached and uncached symbols
-        const uncached = state.symbolList.filter(s => !state.assetTypeCache[s]);
-        const cached = state.symbolList.filter(s => state.assetTypeCache[s]);
+        const { uncached, cached } = partitionSymbols();
 
         // Always fetch uncached symbols to learn their asset types
         if (uncached.length > 0) {
             const data = await fetchQuote(uncached);
             if (data) {
-                updateAssetTypeCache(data);
+                cacheAssetTypes(data);
                 updateUI(data);
             }
         }
 
         // For cached symbols, only fetch those with open markets
-        if (cached.length > 0) {
-            const symbolAssetMap = Object.fromEntries(
-                cached.map(s => [s, state.assetTypeCache[s]])
-            );
-            const toFetch = getSymbolsToFetch(symbolAssetMap);
+        const toFetch = getSymbolsToFetch(
+            Object.fromEntries(cached.map(s => [s, state.assetTypeCache[s]]))
+        );
 
-            if (toFetch.length > 0) {
-                const data = await fetchQuote(toFetch);
-                if (data) updateUI(data);
-            }
+        if (toFetch.length > 0) {
+            const data = await fetchQuote(toFetch);
+            if (data) updateUI(data);
         }
     } catch (error) {
-        console.error("Fetch failed:", error);
+        console.error('Fetch failed:', error);
     } finally {
         state.isFetching = false;
     }
 }
 
+function partitionSymbols() {
+    const uncached = [];
+    const cached = [];
+
+    for (const s of state.symbolList) {
+        (state.assetTypeCache[s] ? cached : uncached).push(s);
+    }
+
+    return { uncached, cached };
+}
+
 async function fetchQuote(symbols) {
-    const symbolsParam = symbols.map(encodeURIComponent).join(',');
-    const response = await fetch(`${WORKER_URL}/quote?symbols=${symbolsParam}&fields=quote`);
+    const params = symbols.map(encodeURIComponent).join(',');
+    const response = await fetch(`${WORKER_URL}/quote?symbols=${params}&fields=quote`);
 
     if (response.redirected && response.url.includes('/login')) {
         window.location.reload();
@@ -71,7 +75,7 @@ async function fetchQuote(symbols) {
     return response.json();
 }
 
-function updateAssetTypeCache(data) {
+function cacheAssetTypes(data) {
     for (const [symbol, info] of Object.entries(data)) {
         if (info.assetMainType) {
             state.assetTypeCache[symbol] = info.assetMainType;
@@ -80,73 +84,69 @@ function updateAssetTypeCache(data) {
 }
 
 export function updateEmptyHint() {
-    const el = document.getElementById('empty-hint');
-    if (el) {
-        el.classList.toggle('hidden', state.symbolList.length > 0);
-    }
+    document.getElementById('empty-hint')
+        ?.classList.toggle('hidden', state.symbolList.length > 0);
 }
 
 function updateUI(data) {
     for (const [symbol, { quote }] of Object.entries(data)) {
         if (!quote) continue;
 
-        const priceEl = document.getElementById(`price-${symbol}`);
-        const chgEl = document.getElementById(`chg-${symbol}`);
-        const pctEl = document.getElementById(`pct-${symbol}`);
+        const els = {
+            price: document.getElementById(`price-${symbol}`),
+            chg: document.getElementById(`chg-${symbol}`),
+            pct: document.getElementById(`pct-${symbol}`)
+        };
 
-        if (!priceEl || !chgEl || !pctEl) continue;
+        if (!els.price || !els.chg || !els.pct) continue;
 
-        const currentPrice = quote.lastPrice || 0;
-        const netChange = quote.netChange || 0;
-        const netPercentChange = quote.netPercentChange || quote.futurePercentChange || 0;
-        const oldPrice = state.previousPrices[symbol];
+        const price = quote.lastPrice || 0;
+        const change = quote.netChange || 0;
+        const changePct = quote.netPercentChange || quote.futurePercentChange || 0;
 
-        handlePriceFlash(priceEl, symbol, currentPrice, oldPrice);
-        state.previousPrices[symbol] = currentPrice;
-
-        updatePriceDisplay(priceEl, chgEl, pctEl, currentPrice, netChange, netPercentChange);
-        applyColorClasses(priceEl, chgEl, pctEl, netChange);
+        handlePriceFlash(els.price, symbol, price);
+        updatePriceDisplay(els, price, change, changePct);
+        applyColors(els, change);
     }
 }
 
-function handlePriceFlash(priceEl, symbol, currentPrice, oldPrice) {
-    if (oldPrice === undefined || currentPrice === oldPrice) return;
+function handlePriceFlash(el, symbol, newPrice) {
+    const oldPrice = state.previousPrices[symbol];
+    state.previousPrices[symbol] = newPrice;
 
-    if (state.flashTimeouts[symbol]) {
-        clearTimeout(state.flashTimeouts[symbol]);
-    }
+    if (oldPrice === undefined || newPrice === oldPrice) return;
 
-    priceEl.classList.remove('flash-up', 'flash-down');
-    void priceEl.offsetWidth;
+    clearTimeout(state.flashTimeouts[symbol]);
+    el.classList.remove('flash-up', 'flash-down');
+    void el.offsetWidth; // Force reflow
 
-    priceEl.classList.add(currentPrice > oldPrice ? 'flash-up' : 'flash-down');
+    el.classList.add(newPrice > oldPrice ? 'flash-up' : 'flash-down');
 
     state.flashTimeouts[symbol] = setTimeout(() => {
-        priceEl.classList.remove('flash-up', 'flash-down');
+        el.classList.remove('flash-up', 'flash-down');
         delete state.flashTimeouts[symbol];
     }, 700);
 }
 
-function updatePriceDisplay(priceEl, chgEl, pctEl, currentPrice, netChange, netPercentChange) {
-    const pricePrecision = getAppropriateDecimals(currentPrice, state.DECIMAL_PRECISION);
-    const sign = val => val > 0 ? '+' : '';
+function updatePriceDisplay(els, price, change, changePct) {
+    const precision = getAppropriateDecimals(price, state.DECIMAL_PRECISION);
+    const sign = v => (v > 0 ? '+' : '');
 
-    priceEl.innerText = formatPrice(currentPrice, state.DECIMAL_PRECISION);
-    chgEl.innerText = sign(netChange) + formatNumber(netChange, pricePrecision);
-    pctEl.innerText = sign(netPercentChange) + netPercentChange.toFixed(2) + '%';
+    els.price.innerText = formatPrice(price, state.DECIMAL_PRECISION);
+    els.chg.innerText = sign(change) + formatNumber(change, precision);
+    els.pct.innerText = sign(changePct) + changePct.toFixed(2) + '%';
 }
 
-function applyColorClasses(priceEl, chgEl, pctEl, netChange) {
-    const elements = [priceEl, chgEl, pctEl];
-    elements.forEach(el => el.classList.remove(...ALL_COLOR_CLASSES));
+function applyColors({ price, chg, pct }, change) {
+    [price, chg, pct].forEach(el => el.classList.remove(...ALL_COLORS));
 
-    if (netChange > 0) {
-        elements.forEach(el => el.classList.add(COLOR_CLASSES.positive));
-    } else if (netChange < 0) {
-        elements.forEach(el => el.classList.add(COLOR_CLASSES.negative));
+    if (change > 0) {
+        [price, chg, pct].forEach(el => el.classList.add(COLORS.positive));
+    } else if (change < 0) {
+        [price, chg, pct].forEach(el => el.classList.add(COLORS.negative));
     } else {
-        priceEl.classList.add(COLOR_CLASSES.neutral);
-        chgEl.classList.add(COLOR_CLASSES.muted);
-        pctEl.classList.add(COLOR_CLASSES.muted);
+        price.classList.add(COLORS.neutral);
+        chg.classList.add(COLORS.muted);
+        pct.classList.add(COLORS.muted);
     }
 }

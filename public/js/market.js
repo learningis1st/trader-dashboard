@@ -1,16 +1,14 @@
 import { ALWAYS_FETCH_TYPES, ASSET_TO_MARKET_MAP } from './config.js';
 
-let marketHoursCache = null;
+let cache = null;
 
 export async function fetchMarketHours() {
-    if (marketHoursCache) {
-        return marketHoursCache;
-    }
+    if (cache) return cache;
 
     try {
-        const response = await fetch("/api/market-hours");
+        const response = await fetch('/api/market-hours');
 
-        if (response.redirected && response.url.includes("/login")) {
+        if (response.redirected && response.url.includes('/login')) {
             window.location.reload();
             return null;
         }
@@ -18,20 +16,17 @@ export async function fetchMarketHours() {
         if (!response.ok) throw new Error(`API error: ${response.status}`);
 
         const result = await response.json();
-        marketHoursCache = result.data;
-        return marketHoursCache;
+        cache = result.data;
+        return cache;
     } catch (error) {
-        console.error("Failed to fetch market hours:", error);
+        console.error('Failed to fetch market hours:', error);
         return null;
     }
 }
 
 function isMarketOpen(marketKey) {
-    if (!marketHoursCache?.[marketKey]) {
-        return true;
-    }
-
-    return Object.values(marketHoursCache[marketKey]).some(product => product.isOpen);
+    if (!cache?.[marketKey]) return true;
+    return Object.values(cache[marketKey]).some(product => product.isOpen);
 }
 
 export function getSymbolsToFetch(symbolAssetMap) {
@@ -45,5 +40,5 @@ export function getSymbolsToFetch(symbolAssetMap) {
 }
 
 export function getMarketHoursCache() {
-    return marketHoursCache;
+    return cache;
 }

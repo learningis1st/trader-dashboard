@@ -1,38 +1,39 @@
 export const WORKER_URL = 'https://finance.learningis1.st';
 
-export const MIN_REFRESH_RATE = 500;
-export const MAX_REFRESH_RATE = 10000;
-
-export const MIN_WIDGET_SIZE = 1;
-export const MAX_WIDGET_SIZE = 12;
-
-export const MIN_DECIMAL_PRECISION = 2;
-export const MAX_DECIMAL_PRECISION = 6;
+export const LIMITS = {
+    REFRESH_RATE: { MIN: 500, MAX: 10000 },
+    WIDGET_SIZE: { MIN: 1, MAX: 12 },
+    DECIMAL_PRECISION: { MIN: 2, MAX: 6 }
+};
 
 // Asset types that are always fetched regardless of market hours
 export const ALWAYS_FETCH_TYPES = ['FUTURE', 'FOREX'];
 
 export const ASSET_TO_MARKET_MAP = {
-    'EQUITY': 'equity',
-    'OPTION': 'option',
-    'BOND': 'bond',
-    'FUTURE': 'future',
-    'FOREX': 'forex'
+    EQUITY: 'equity',
+    OPTION: 'option',
+    BOND: 'bond',
+    FUTURE: 'future',
+    FOREX: 'forex'
 };
 
 // Mutable state
 export const state = {
+    // User settings
     REFRESH_RATE: 1000,
     DEFAULT_WIDGET_WIDTH: 2,
     DEFAULT_WIDGET_HEIGHT: 2,
     DECIMAL_PRECISION: 2,
+
+    // Runtime state
     grid: null,
     isRestoring: false,
+    isFetching: false,
+    refreshInterval: null,
+
+    // Data caches
     symbolList: [],
     previousPrices: {},
-    flashTimeouts: {},
-    refreshInterval: null,
-    isFetching: false,
-    saveTimeout: null,
-    assetTypeCache: {}
+    assetTypeCache: {},
+    flashTimeouts: {}
 };

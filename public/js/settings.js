@@ -1,144 +1,104 @@
-import {
-    MIN_REFRESH_RATE, MAX_REFRESH_RATE,
-    MIN_WIDGET_SIZE, MAX_WIDGET_SIZE,
-    MIN_DECIMAL_PRECISION, MAX_DECIMAL_PRECISION,
-    state
-} from './config.js';
+import { LIMITS, state } from './config.js';
 import { startRefreshInterval, fetchData } from './data.js';
 
-function clamp(value, min, max) {
+const STORAGE_KEY = 'trader_dashboard_settings';
+
+function clamp(value, { MIN, MAX }) {
     const num = parseInt(value, 10);
-    if (isNaN(num) || num < min) return min;
-    if (num > max) return max;
-    return num;
+    if (isNaN(num) || num < MIN) return MIN;
+    return num > MAX ? MAX : num;
 }
 
 function updateSliderTrack(slider) {
-    const min = parseFloat(slider.min);
-    const max = parseFloat(slider.max);
-    const val = parseFloat(slider.value);
-    const percent = ((val - min) / (max - min)) * 100;
-    slider.style.setProperty('--value-percent', percent + '%');
+    const percent = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+    slider.style.setProperty('--value-percent', `${percent}%`);
+}
+
+function createSliderUpdater(slider, display) {
+    return () => {
+        display.textContent = slider.value;
+        updateSliderTrack(slider);
+    };
 }
 
 export function setupSettingsModal() {
-    const btn = document.getElementById('settings-btn');
     const modal = document.getElementById('settings-modal');
-    const input = document.getElementById('refresh-rate-input');
-    const widthInput = document.getElementById('widget-width-input');
-    const heightInput = document.getElementById('widget-height-input');
-    const precisionInput = document.getElementById('decimal-precision-input');
-    const cancelBtn = document.getElementById('settings-cancel');
-    const saveBtn = document.getElementById('settings-save');
-
-    // Value display elements for sliders
-    const widthValue = document.getElementById('widget-width-value');
-    const heightValue = document.getElementById('widget-height-value');
-    const precisionValue = document.getElementById('decimal-precision-value');
-
-    // Live update functions for sliders
-    const updateWidthDisplay = () => {
-        widthValue.textContent = widthInput.value;
-        updateSliderTrack(widthInput);
+    const inputs = {
+        refresh: document.getElementById('refresh-rate-input'),
+        width: document.getElementById('widget-width-input'),
+        height: document.getElementById('widget-height-input'),
+        precision: document.getElementById('decimal-precision-input')
     };
-    const updateHeightDisplay = () => {
-        heightValue.textContent = heightInput.value;
-        updateSliderTrack(heightInput);
-    };
-    const updatePrecisionDisplay = () => {
-        precisionValue.textContent = precisionInput.value;
-        updateSliderTrack(precisionInput);
+    const displays = {
+        width: document.getElementById('widget-width-value'),
+        height: document.getElementById('widget-height-value'),
+        precision: document.getElementById('decimal-precision-value')
     };
 
-    // Add input listeners for live updates (sliders only)
-    widthInput.addEventListener('input', updateWidthDisplay);
-    heightInput.addEventListener('input', updateHeightDisplay);
-    precisionInput.addEventListener('input', updatePrecisionDisplay);
+    const updaters = {
+        width: createSliderUpdater(inputs.width, displays.width),
+        height: createSliderUpdater(inputs.height, displays.height),
+        precision: createSliderUpdater(inputs.precision, displays.precision)
+    };
 
-    btn.addEventListener('click', () => {
-        input.value = state.REFRESH_RATE;
-        widthInput.value = state.DEFAULT_WIDGET_WIDTH;
-        heightInput.value = state.DEFAULT_WIDGET_HEIGHT;
-        precisionInput.value = state.DECIMAL_PRECISION;
+    // Add slider listeners
+    inputs.width.addEventListener('input', updaters.width);
+    inputs.height.addEventListener('input', updaters.height);
+    inputs.precision.addEventListener('input', updaters.precision);
 
-        // Update slider displays
-        updateWidthDisplay();
-        updateHeightDisplay();
-        updatePrecisionDisplay();
+    const openModal = () => {
+        inputs.refresh.value = state.REFRESH_RATE;
+        inputs.width.value = state.DEFAULT_WIDGET_WIDTH;
+        inputs.height.value = state.DEFAULT_WIDGET_HEIGHT;
+        inputs.precision.value = state.DECIMAL_PRECISION;
 
+        Object.values(updaters).forEach(fn => fn());
         modal.classList.remove('hidden');
+    };
+
+    const closeModal = () => modal.classList.add('hidden');
+
+    const saveAndClose = () => {
+        state.REFRESH_RATE = clamp(inputs.refresh.value, LIMITS.REFRESH_RATE);
+        state.DEFAULT_WIDGET_WIDTH = clamp(inputs.width.value, LIMITS.WIDGET_SIZE);
+        state.DEFAULT_WIDGET_HEIGHT = clamp(inputs.height.value, LIMITS.WIDGET_SIZE);
+        state.DECIMAL_PRECISION = clamp(inputs.precision.value, LIMITS.DECIMAL_PRECISION);
+
+        saveSettings();
+        startRefreshInterval();
+        fetchData();
+        closeModal();
+    };
+
+    document.getElementById('settings-btn').addEventListener('click', openModal);
+    document.getElementById('settings-cancel').addEventListener('click', closeModal);
+    document.getElementById('settings-save').addEventListener('click', saveAndClose);
+    modal.addEventListener('click', e => e.target === modal && closeModal());
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
     });
-
-    cancelBtn.addEventListener('click', () => {
-        modal.classList.add('hidden');
-    });
-
-    saveBtn.addEventListener('click', () => {
-        saveSettingsFromModal();
-    });
-
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.classList.add('hidden');
-        }
-    });
-
-    // Handle Escape key to close modal
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-            modal.classList.add('hidden');
-        }
-    });
-}
-
-function saveSettingsFromModal() {
-    const modal = document.getElementById('settings-modal');
-    const input = document.getElementById('refresh-rate-input');
-    const widthInput = document.getElementById('widget-width-input');
-    const heightInput = document.getElementById('widget-height-input');
-    const precisionInput = document.getElementById('decimal-precision-input');
-
-    state.REFRESH_RATE = clamp(input.value, MIN_REFRESH_RATE, MAX_REFRESH_RATE);
-    state.DEFAULT_WIDGET_WIDTH = clamp(widthInput.value, MIN_WIDGET_SIZE, MAX_WIDGET_SIZE);
-    state.DEFAULT_WIDGET_HEIGHT = clamp(heightInput.value, MIN_WIDGET_SIZE, MAX_WIDGET_SIZE);
-    state.DECIMAL_PRECISION = clamp(precisionInput.value, MIN_DECIMAL_PRECISION, MAX_DECIMAL_PRECISION);
-
-    saveSettings();
-    startRefreshInterval();
-    fetchData();
-    modal.classList.add('hidden');
 }
 
 export function loadSettings() {
-    const raw = localStorage.getItem('trader_dashboard_settings');
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
 
     try {
-        const settings = JSON.parse(raw);
-
-        if (settings.refreshRate) {
-            state.REFRESH_RATE = clamp(settings.refreshRate, MIN_REFRESH_RATE, MAX_REFRESH_RATE);
-        }
-        if (settings.defaultWidgetWidth) {
-            state.DEFAULT_WIDGET_WIDTH = clamp(settings.defaultWidgetWidth, MIN_WIDGET_SIZE, MAX_WIDGET_SIZE);
-        }
-        if (settings.defaultWidgetHeight) {
-            state.DEFAULT_WIDGET_HEIGHT = clamp(settings.defaultWidgetHeight, MIN_WIDGET_SIZE, MAX_WIDGET_SIZE);
-        }
-        if (settings.decimalPrecision) {
-            state.DECIMAL_PRECISION = clamp(settings.decimalPrecision, MIN_DECIMAL_PRECISION, MAX_DECIMAL_PRECISION);
-        }
+        const s = JSON.parse(raw);
+        if (s.refreshRate) state.REFRESH_RATE = clamp(s.refreshRate, LIMITS.REFRESH_RATE);
+        if (s.defaultWidgetWidth) state.DEFAULT_WIDGET_WIDTH = clamp(s.defaultWidgetWidth, LIMITS.WIDGET_SIZE);
+        if (s.defaultWidgetHeight) state.DEFAULT_WIDGET_HEIGHT = clamp(s.defaultWidgetHeight, LIMITS.WIDGET_SIZE);
+        if (s.decimalPrecision) state.DECIMAL_PRECISION = clamp(s.decimalPrecision, LIMITS.DECIMAL_PRECISION);
     } catch (e) {
-        console.error("Failed to parse settings:", e);
+        console.error('Failed to parse settings:', e);
     }
 }
 
 export function saveSettings() {
-    const settings = {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
         refreshRate: state.REFRESH_RATE,
         defaultWidgetWidth: state.DEFAULT_WIDGET_WIDTH,
         defaultWidgetHeight: state.DEFAULT_WIDGET_HEIGHT,
         decimalPrecision: state.DECIMAL_PRECISION
-    };
-    localStorage.setItem('trader_dashboard_settings', JSON.stringify(settings));
+    }));
 }
