@@ -42,7 +42,9 @@ function isWithinSessionHours(sessionHours) {
 function isMarketOpen(marketKey) {
     if (!cache?.[marketKey]) return true;
     return Object.values(cache[marketKey]).some(product =>
-        product.isOpen && isWithinSessionHours(product.sessionHours)
+        marketKey === 'equity'
+            ? product.isOpen
+            : product.isOpen && isWithinSessionHours(product.sessionHours)
     );
 }
 
