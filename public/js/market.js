@@ -27,6 +27,7 @@ export async function fetchMarketHours() {
         const result = await response.json();
         marketHoursCache = result.data;
         cachedDate = today;
+        console.log("Market hours loaded:", Object.keys(marketHoursCache || {}));
         return marketHoursCache;
     } catch (error) {
         console.error("Failed to fetch market hours:", error);
@@ -51,19 +52,35 @@ function isTimeInSession(sessionHours, now) {
 }
 
 function isMarketInSession(marketKey) {
-    if (!marketHoursCache?.[marketKey]) return true;
+    if (!marketHoursCache?.[marketKey]) {
+        // If no market hours data for this market, assume it's open
+        console.log(`No market hours data for ${marketKey}, assuming open`);
+        return true;
+    }
 
     const now = Date.now();
-    return Object.values(marketHoursCache[marketKey])
+    const marketData = marketHoursCache[marketKey];
+
+    const inSession = Object.values(marketData)
         .some(product => isTimeInSession(product.sessionHours, now));
+
+    if (!inSession) {
+        console.log(`Market ${marketKey} is closed`);
+    }
+
+    return inSession;
 }
 
 export function getSymbolsToFetch(symbolAssetMap) {
     return Object.entries(symbolAssetMap)
-        .filter(([, assetType]) => {
+        .filter(([symbol, assetType]) => {
             if (ALWAYS_FETCH_TYPES.includes(assetType)) return true;
             const marketKey = ASSET_TO_MARKET_MAP[assetType];
-            return !marketKey || isMarketInSession(marketKey);
+            if (!marketKey) {
+                console.log(`No market mapping for asset type ${assetType}, fetching ${symbol}`);
+                return true;
+            }
+            return isMarketInSession(marketKey);
         })
         .map(([symbol]) => symbol);
 }
