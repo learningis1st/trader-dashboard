@@ -1,14 +1,6 @@
-interface Env {
-    DB: D1Database;
-}
+import { Env, jsonResponse } from "../utils/shared";
 
 const MARKET_HOURS_API = 'https://finance.learningis1.st/markets?markets=equity,option,bond';
-
-const jsonResponse = (data: unknown, status = 200) =>
-    new Response(JSON.stringify(data), {
-        status,
-        headers: { 'Content-Type': 'application/json' }
-    });
 
 const getTodayET = () =>
     new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });

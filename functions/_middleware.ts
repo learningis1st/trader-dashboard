@@ -1,12 +1,6 @@
-// --- TYPES & CONSTANTS ---
+import { Env } from "./utils/shared";
 
-interface Env {
-    YUBICO_CLIENT_ID: string;
-    YUBICO_SECRET_KEY: string;
-    ALLOWED_YUBIKEY_ID: string;
-    SESSION_SECRET: string;
-    DB: D1Database;
-}
+// --- CONSTANTS ---
 
 const SESSION_DURATION_MS = 3600 * 1000; // 1 hour
 const SESSION_MAX_AGE_SECONDS = 3600;

@@ -1,12 +1,4 @@
-interface Env {
-    DB: D1Database;
-}
-
-const jsonResponse = (data: unknown, status = 200) =>
-    new Response(JSON.stringify(data), {
-        status,
-        headers: { "Content-Type": "application/json" },
-    });
+import { Env, jsonResponse } from "../utils/shared";
 
 export const onRequest: PagesFunction<Env> = async (context) => {
     const userId = context.data.yubikeyId as string;
