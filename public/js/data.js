@@ -1,6 +1,6 @@
 import { WORKER_URL, state } from './config.js';
 import { getAppropriateDecimals, formatPrice, formatNumber } from './utils.js';
-import { getSymbolsToFetch } from './market.js';
+import { getSymbolsToFetch, fetchMarketHours } from './market.js';
 
 const COLOR_CLASSES = {
     positive: 'text-[#4ade80]',
@@ -27,40 +27,42 @@ export async function fetchData() {
     state.isFetching = true;
 
     try {
+        // Ensure market hours are loaded
+        await fetchMarketHours();
+
         const uncachedSymbols = state.symbolList.filter(s => !state.assetTypeCache[s]);
 
+        // Always fetch uncached symbols first to learn their asset types and show data
         if (uncachedSymbols.length > 0) {
-            await fetchAssetTypes(uncachedSymbols);
+            console.debug("Fetching uncached symbols:", uncachedSymbols);
+            const data = await fetchQuote(uncachedSymbols);
+            if (data) {
+                updateAssetTypeCache(data);
+                updateUI(data);
+            }
         }
 
-        const symbolAssetMap = {};
-        for (const symbol of state.symbolList) {
-            symbolAssetMap[symbol] = state.assetTypeCache[symbol] || 'EQUITY'; // Default to EQUITY
+        // For cached symbols, only fetch those whose markets are open
+        const cachedSymbols = state.symbolList.filter(s => state.assetTypeCache[s]);
+
+        if (cachedSymbols.length > 0) {
+            const symbolAssetMap = {};
+            for (const symbol of cachedSymbols) {
+                symbolAssetMap[symbol] = state.assetTypeCache[symbol];
+            }
+
+            const symbolsToFetch = getSymbolsToFetch(symbolAssetMap);
+
+            if (symbolsToFetch.length > 0) {
+                console.debug(`Fetching ${symbolsToFetch.length} cached symbols with open markets`);
+                const data = await fetchQuote(symbolsToFetch);
+                if (data) {
+                    updateUI(data);
+                }
+            } else {
+                console.debug("No cached symbols have open markets");
+            }
         }
-
-        const symbolsToFetch = getSymbolsToFetch(symbolAssetMap);
-
-        if (symbolsToFetch.length === 0) {
-            console.debug("No markets open for current symbols, skipping fetch");
-            return;
-        }
-
-        console.debug(`Fetching ${symbolsToFetch.length}/${state.symbolList.length} symbols`);
-
-        const symbolsParam = symbolsToFetch.map(s => encodeURIComponent(s)).join(',');
-        const response = await fetch(`${WORKER_URL}/quote?symbols=${symbolsParam}&fields=quote`);
-
-        if (response.redirected && response.url.includes('/login')) {
-            window.location.reload();
-            return;
-        }
-
-        if (!response.ok) throw new Error('API Error');
-
-        const data = await response.json();
-
-        updateAssetTypeCache(data);
-        updateUI(data);
 
     } catch (error) {
         console.error("Fetch failed:", error);
@@ -69,17 +71,22 @@ export async function fetchData() {
     }
 }
 
-async function fetchAssetTypes(symbols) {
+async function fetchQuote(symbols) {
     try {
         const symbolsParam = symbols.map(s => encodeURIComponent(s)).join(',');
         const response = await fetch(`${WORKER_URL}/quote?symbols=${symbolsParam}&fields=quote`);
 
-        if (!response.ok) return;
+        if (response.redirected && response.url.includes('/login')) {
+            window.location.reload();
+            return null;
+        }
 
-        const data = await response.json();
-        updateAssetTypeCache(data);
+        if (!response.ok) throw new Error('API Error');
+
+        return await response.json();
     } catch (error) {
-        console.error("Failed to fetch asset types:", error);
+        console.error("Quote fetch failed:", error);
+        return null;
     }
 }
 
@@ -87,6 +94,7 @@ function updateAssetTypeCache(data) {
     for (const [symbol, info] of Object.entries(data)) {
         if (info.assetMainType) {
             state.assetTypeCache[symbol] = info.assetMainType;
+            console.debug(`Cached asset type: ${symbol} -> ${info.assetMainType}`);
         }
     }
 }
