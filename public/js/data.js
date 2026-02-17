@@ -27,7 +27,7 @@ export async function fetchData() {
 
     try {
         const symbolsParam = state.symbolList.map(s => encodeURIComponent(s)).join(',');
-        const response = await fetch(`${WORKER_URL}/quote?symbol=${symbolsParam}&fields=quote`);
+        const response = await fetch(`${WORKER_URL}/quote?symbols=${symbolsParam}&fields=quote`);
 
         if (response.redirected && response.url.includes('/login')) {
             window.location.reload();
