@@ -9,6 +9,17 @@ export const MAX_WIDGET_SIZE = 12;
 export const MIN_DECIMAL_PRECISION = 2;
 export const MAX_DECIMAL_PRECISION = 6;
 
+// Asset types that are always fetched regardless of market hours
+export const ALWAYS_FETCH_TYPES = ['FUTURE', 'FOREX'];
+
+export const ASSET_TO_MARKET_MAP = {
+    'EQUITY': 'equity',
+    'OPTION': 'option',
+    'BOND': 'bond',
+    'FUTURE': 'future',
+    'FOREX': 'forex'
+};
+
 // Mutable state
 export const state = {
     REFRESH_RATE: 1000,
@@ -22,5 +33,6 @@ export const state = {
     flashTimeouts: {},
     refreshInterval: null,
     isFetching: false,
-    saveTimeout: null
+    saveTimeout: null,
+    assetTypeCache: {}
 };

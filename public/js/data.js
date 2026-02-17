@@ -1,6 +1,6 @@
 import { WORKER_URL, state } from './config.js';
 import { getAppropriateDecimals, formatPrice, formatNumber } from './utils.js';
-import { shouldFetchData } from './market.js';
+import { getSymbolsToFetch } from './market.js';
 
 const COLOR_CLASSES = {
     positive: 'text-[#4ade80]',
@@ -24,16 +24,30 @@ export async function fetchData() {
     if (state.symbolList.length === 0) return;
     if (state.isFetching) return;
 
-    const marketOpen = await shouldFetchData();
-    if (!marketOpen) {
-        console.debug("Market closed, skipping data fetch");
-        return;
-    }
-
     state.isFetching = true;
 
     try {
-        const symbolsParam = state.symbolList.map(s => encodeURIComponent(s)).join(',');
+        const uncachedSymbols = state.symbolList.filter(s => !state.assetTypeCache[s]);
+
+        if (uncachedSymbols.length > 0) {
+            await fetchAssetTypes(uncachedSymbols);
+        }
+
+        const symbolAssetMap = {};
+        for (const symbol of state.symbolList) {
+            symbolAssetMap[symbol] = state.assetTypeCache[symbol] || 'EQUITY'; // Default to EQUITY
+        }
+
+        const symbolsToFetch = getSymbolsToFetch(symbolAssetMap);
+
+        if (symbolsToFetch.length === 0) {
+            console.debug("No markets open for current symbols, skipping fetch");
+            return;
+        }
+
+        console.debug(`Fetching ${symbolsToFetch.length}/${state.symbolList.length} symbols`);
+
+        const symbolsParam = symbolsToFetch.map(s => encodeURIComponent(s)).join(',');
         const response = await fetch(`${WORKER_URL}/quote?symbols=${symbolsParam}&fields=quote`);
 
         if (response.redirected && response.url.includes('/login')) {
@@ -44,12 +58,36 @@ export async function fetchData() {
         if (!response.ok) throw new Error('API Error');
 
         const data = await response.json();
+
+        updateAssetTypeCache(data);
         updateUI(data);
 
     } catch (error) {
         console.error("Fetch failed:", error);
     } finally {
         state.isFetching = false;
+    }
+}
+
+async function fetchAssetTypes(symbols) {
+    try {
+        const symbolsParam = symbols.map(s => encodeURIComponent(s)).join(',');
+        const response = await fetch(`${WORKER_URL}/quote?symbols=${symbolsParam}&fields=quote`);
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        updateAssetTypeCache(data);
+    } catch (error) {
+        console.error("Failed to fetch asset types:", error);
+    }
+}
+
+function updateAssetTypeCache(data) {
+    for (const [symbol, info] of Object.entries(data)) {
+        if (info.assetMainType) {
+            state.assetTypeCache[symbol] = info.assetMainType;
+        }
     }
 }
 

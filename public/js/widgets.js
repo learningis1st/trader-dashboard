@@ -95,6 +95,7 @@ export function removeSymbol(symbol) {
     state.grid.removeWidget(widgetEl);
     state.symbolList = state.symbolList.filter(s => s !== symbol);
     delete state.previousPrices[symbol];
+    delete state.assetTypeCache[symbol];
     saveState();
     updateEmptyHint();
 }
@@ -138,6 +139,7 @@ export function editTicker(oldSymbol, el) {
         state.grid.removeWidget(widgetEl);
         state.symbolList = state.symbolList.filter(s => s !== oldSymbol);
         delete state.previousPrices[oldSymbol];
+        delete state.assetTypeCache[oldSymbol];
 
         addSymbolWidget(newSymbol, options);
         fetchData();
@@ -158,7 +160,6 @@ export function editTicker(oldSymbol, el) {
     input.select();
 }
 
-// Expose to window for inline onclick handlers
 window.widgetActions = {
     removeSymbol,
     openTradingView,
