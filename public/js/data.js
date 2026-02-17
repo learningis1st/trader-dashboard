@@ -1,6 +1,6 @@
 import { WORKER_URL, state } from './config.js';
 import { getAppropriateDecimals, formatPrice, formatNumber } from './utils.js';
-import { getSymbolsToFetch, fetchMarketHours } from './market.js';
+import { getSymbolsToFetch } from './market.js';
 
 const COLOR_CLASSES = {
     positive: 'text-[#4ade80]',
@@ -26,8 +26,6 @@ export async function fetchData() {
     state.isFetching = true;
 
     try {
-        await fetchMarketHours();
-
         // Separate cached and uncached symbols
         const uncached = state.symbolList.filter(s => !state.assetTypeCache[s]);
         const cached = state.symbolList.filter(s => state.assetTypeCache[s]);
