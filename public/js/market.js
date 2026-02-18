@@ -41,18 +41,14 @@ function isWithinSessionHours(sessionHours) {
 
 function isWeekendGap() {
     const now = new Date();
-    const day = now.getUTCDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-    const hour = now.getUTCHours();
+    // Get hour in New York
+    const nyTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+    const day = nyTime.getDay(); // 0-6 relative to local time
+    const hour = nyTime.getHours();
 
-    // Saturday is always weekend
-    if (day === 6) return true;
-
-    // Friday after 21:00 UTC (approx 5PM EST) is weekend start
-    if (day === 5 && hour >= 21) return true;
-
-    // Sunday before 22:00 UTC (approx 6PM EST) is weekend end
-    if (day === 0 && hour < 22) return true;
-
+    if (day === 6) return true; // Saturday
+    if (day === 5 && hour >= 17) return true; // Friday after 5pm ET
+    if (day === 0 && hour < 17) return true;  // Sunday before 5pm ET
     return false;
 }
 
