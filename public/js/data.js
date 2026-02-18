@@ -118,9 +118,10 @@ function handlePriceFlash(el, symbol, newPrice) {
 
     clearTimeout(state.flashTimeouts[symbol]);
     el.classList.remove('flash-up', 'flash-down');
-    void el.offsetWidth; // Force reflow
-
-    el.classList.add(newPrice > oldPrice ? 'flash-up' : 'flash-down');
+    const className = newPrice > oldPrice ? 'flash-up' : 'flash-down';
+    requestAnimationFrame(() => {
+        el.classList.add(className);
+    });
 
     state.flashTimeouts[symbol] = setTimeout(() => {
         el.classList.remove('flash-up', 'flash-down');
