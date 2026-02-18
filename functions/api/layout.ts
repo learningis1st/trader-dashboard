@@ -1,4 +1,5 @@
-import { Env, jsonResponse } from "../utils/shared";
+import { Env } from "../utils/env";
+import { jsonResponse } from "../utils/response";
 
 export const onRequest: PagesFunction<Env> = async (context) => {
     const userId = context.data.yubikeyId as string;
