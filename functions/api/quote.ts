@@ -17,8 +17,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     if (!symbols) return jsonResponse({ error: 'Missing symbols' }, 400);
 
-    // Optionally: implement caching here
-
     const url = `${QUOTE_API}?symbols=${symbols}${fields ? `&fields=${fields}` : ''}`;
     try {
         const resp = await fetch(url);
