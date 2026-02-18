@@ -26,8 +26,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
         const marketData = await response.json();
 
-        // Clean old entries and insert new
-        await context.env.DB.prepare('DELETE FROM market_hours WHERE date != ?').bind(today).run();
         await context.env.DB
             .prepare('INSERT OR REPLACE INTO market_hours (date, data, created_at) VALUES (?, ?, ?)')
             .bind(today, JSON.stringify(marketData), Date.now())
