@@ -6,26 +6,22 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const userId = context.data.yubikeyId as string;
     if (!userId) return jsonResponse({ error: 'Unauthorized' }, 401);
 
-    const { symbols, fields } = context.request.url
-        .split('?')[1]
-        ?.split('&')
-        .reduce((acc, cur) => {
-            const [k, v] = cur.split('=');
-            acc[k] = v;
-            return acc;
-        }, {} as Record<string, string>) || {};
+    const { searchParams } = new URL(context.request.url);
+    const symbols = searchParams.get('symbols');
+    const fields = searchParams.get('fields');
 
     if (!symbols) return jsonResponse({ error: 'Missing symbols' }, 400);
 
-    const url = `${QUOTE_API}?symbols=${symbols}${fields ? `&fields=${fields}` : ''}`;
+    const url = new URL(QUOTE_API);
+    url.searchParams.set('symbols', symbols);
+    if (fields) url.searchParams.set('fields', fields);
+
     try {
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error(`API returned ${resp.status}`);
-        const data = await resp.json();
-        return jsonResponse(data);
+        const resp = await fetch(url.toString());
+        if (!resp.ok) throw new Error(`API error: ${resp.status}`);
+        return jsonResponse(await resp.json());
     } catch (error) {
         console.error('Quote proxy error:', error);
         return jsonResponse({ error: 'Failed to fetch quote' }, 500);
     }
 };
-

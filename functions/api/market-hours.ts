@@ -22,7 +22,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         }
 
         const response = await fetch(MARKET_HOURS_API);
-        if (!response.ok) throw new Error(`API returned ${response.status}`);
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
 
         const marketData = await response.json();
 
