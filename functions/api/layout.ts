@@ -24,8 +24,24 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     if (method === "POST") {
         try {
-            const layout = await context.request.json();
+            const MAX_LAYOUT_SIZE = 32 * 1024; // 32KB
+
+            const contentLength = context.request.headers.get("content-length");
+            if (contentLength && parseInt(contentLength) > MAX_LAYOUT_SIZE) {
+                return jsonResponse({ error: "Payload too large" }, 413);
+            }
+
+            const bodyText = await context.request.text();
+            if (bodyText.length > MAX_LAYOUT_SIZE) {
+                return jsonResponse({ error: "Payload too large" }, 413);
+            }
+
+            const layout = JSON.parse(bodyText);
             const layoutString = JSON.stringify(layout);
+
+            if (layoutString.length > MAX_LAYOUT_SIZE) {
+                return jsonResponse({ error: "Payload too large" }, 413);
+            }
 
             await context.env.DB.prepare(
                 `INSERT INTO user_layouts (user_id, layout, updated_at) 
