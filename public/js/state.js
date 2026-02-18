@@ -33,7 +33,7 @@ export function saveState() {
 
     clearTimeout(localDebounce);
     localDebounce = setTimeout(() => {
-        const layout = state.grid.engine.nodes.map(node => ({
+        const layout = state.grid.save().map(node => ({
             symbol: unescapeHtml(node.id),
             x: node.x,
             y: node.y,
