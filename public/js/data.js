@@ -1,4 +1,3 @@
-import { WORKER_URL } from './config.js';
 import { state } from './state.js';
 import { getAppropriateDecimals, formatPrice, formatNumber } from './utils.js';
 import { getSymbolsToFetch } from './market.js';
@@ -65,7 +64,7 @@ function partitionSymbols() {
 
 async function fetchQuote(symbols) {
     const params = symbols.map(encodeURIComponent).join(',');
-    const response = await fetch(`${WORKER_URL}/quote?symbols=${params}&fields=quote`);
+    const response = await fetch(`/api/quote?symbols=${params}&fields=quote`);
 
     if (response.redirected && response.url.includes('/login')) {
         window.location.reload();

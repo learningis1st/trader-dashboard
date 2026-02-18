@@ -1,5 +1,3 @@
-export const WORKER_URL = 'https://finance.learningis1.st';
-
 export const LIMITS = {
     REFRESH_RATE: { MIN: 500, MAX: 10000 },
     WIDGET_SIZE: { MIN: 1, MAX: 12 },
