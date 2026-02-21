@@ -20,7 +20,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     const sessionData = await verifySessionCookie(
         cookieHeader,
         context.env.SESSION_SECRET,
-        context.env.ALLOWED_YUBIKEY_ID
+        context.env.DB
     );
 
     // Authenticated user
@@ -64,9 +64,12 @@ async function handleAuth(context: EventContext<Env, string, Record<string, unkn
     }
 
     const yubikeyId = otp.substring(0, YUBIKEY_ID_LENGTH).toLowerCase();
-    const allowedIds = parseAllowedIds(context.env.ALLOWED_YUBIKEY_ID);
 
-    if (!allowedIds.includes(yubikeyId)) {
+    const dbResult = await context.env.DB.prepare(
+        "SELECT yubikey_id FROM allowed_yubikeys WHERE yubikey_id = ?"
+    ).bind(yubikeyId).first();
+
+    if (!dbResult) {
         return redirectWithError("Unauthorized Device ID");
     }
 
@@ -109,7 +112,7 @@ async function createSignedSessionValue(secret: string, yubikeyId: string): Prom
 async function verifySessionCookie(
     cookieHeader: string | null,
     secret: string,
-    allowedYubiKeys: string
+    db: D1Database
 ): Promise<{ yubikeyId: string } | null> {
     if (!cookieHeader) return null;
 
@@ -126,9 +129,13 @@ async function verifySessionCookie(
         const data = JSON.parse(atob(base64UrlToBase64(encodedDataUrl)));
 
         if (Date.now() > data.exp) return null;
+        if (!data.yubikeyId) return null;
 
-        const allowedIds = parseAllowedIds(allowedYubiKeys);
-        if (!data.yubikeyId || !allowedIds.includes(data.yubikeyId.toLowerCase())) {
+        const dbResult = await db.prepare(
+            "SELECT yubikey_id FROM allowed_yubikeys WHERE yubikey_id = ?"
+        ).bind(data.yubikeyId.toLowerCase()).first();
+
+        if (!dbResult) {
             return null;
         }
 
@@ -223,10 +230,4 @@ function base64UrlToBase64(base64url: string): string {
 function base64ToBytes(base64: string): Uint8Array {
     const binary = atob(base64);
     return Uint8Array.from(binary, char => char.charCodeAt(0));
-}
-
-// --- HELPERS ---
-
-function parseAllowedIds(allowedYubiKeys: string): string[] {
-    return (allowedYubiKeys || "").split(',').map(id => id.trim().toLowerCase());
 }
