@@ -5,6 +5,7 @@ import { Env } from "./utils/env";
 const SESSION_DURATION_MS = 3600 * 1000; // 1 hour
 const SESSION_MAX_AGE_SECONDS = 3600;
 const YUBIKEY_ID_LENGTH = 12;
+const YUBIKEY_OTP_LENGTH = 44;
 const PUBLIC_ASSETS = ["/app.js", "/style.css", "/favicon.ico"];
 
 // --- MIDDLEWARE ---
@@ -63,8 +64,8 @@ async function handleAuth(context: EventContext<Env, string, Record<string, unkn
         return redirectWithError("No OTP provided");
     }
 
-    if (otp.length !== 44) {
-        return redirectWithError("Invalid YubiKey OTP length. Must be 44 characters.");
+    if (otp.length !== YUBIKEY_OTP_LENGTH) {
+        return redirectWithError("Invalid OTP length");
     }
 
     const yubikeyId = otp.substring(0, YUBIKEY_ID_LENGTH).toLowerCase();
