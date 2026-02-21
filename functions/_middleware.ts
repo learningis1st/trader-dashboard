@@ -63,6 +63,10 @@ async function handleAuth(context: EventContext<Env, string, Record<string, unkn
         return redirectWithError("No OTP provided");
     }
 
+    if (otp.length !== 44) {
+        return redirectWithError("Invalid YubiKey OTP length. Must be 44 characters.");
+    }
+
     const yubikeyId = otp.substring(0, YUBIKEY_ID_LENGTH).toLowerCase();
 
     const dbResult = await context.env.DB.prepare(
