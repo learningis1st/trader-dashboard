@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS allowed_yubikeys (
     yubikey_id TEXT PRIMARY KEY,
     description TEXT,
-    created_at INTEGER NOT NULL
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS user_layouts (
