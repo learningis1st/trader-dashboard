@@ -3,8 +3,8 @@ export const state = {
     REFRESH_RATE: 5000,
     DEFAULT_WIDGET_WIDTH: 2,
     DEFAULT_WIDGET_HEIGHT: 2,
-    PRICE_TYPE: 'mark',
     DECIMAL_PRECISION: 2,
+    PRICE_TYPE: 'mark',
 
     // Runtime state
     grid: null,
