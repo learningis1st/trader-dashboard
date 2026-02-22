@@ -88,9 +88,18 @@ export function updateEmptyHint() {
         ?.classList.toggle('hidden', state.symbolList.length > 0);
 }
 
+export function reRenderUI() {
+    if (Object.keys(state.lastQuotes).length > 0) {
+        updateUI(state.lastQuotes);
+    }
+}
+
 function updateUI(data) {
     for (const [symbol, { quote }] of Object.entries(data)) {
         if (!quote) continue;
+
+        // Cache the quote for offline re-renders
+        state.lastQuotes[symbol] = { quote };
 
         const els = {
             price: document.getElementById(`price-${symbol}`),

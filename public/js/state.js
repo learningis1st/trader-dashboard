@@ -16,7 +16,8 @@ export const state = {
     symbolList: [],
     previousPrices: {},
     assetTypeCache: {},
-    flashTimeouts: {}
+    flashTimeouts: {},
+    lastQuotes: {}
 };
 
 import { unescapeHtml } from './utils.js';
