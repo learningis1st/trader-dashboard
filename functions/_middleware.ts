@@ -18,15 +18,17 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         context.env.DB
     );
 
+    const isAuthRoute = ["/login", "/api/auth", "/signup", "/api/signup"].includes(url.pathname);
+
     if (sessionData) {
         context.data.yubikeyId = sessionData.yubikeyId;
-        if (url.pathname === "/login" || url.pathname === "/api/auth") {
+        if (isAuthRoute) {
             return Response.redirect(new URL("/", context.request.url).toString(), 302);
         }
         return context.next();
     }
 
-    if (url.pathname === "/login" || url.pathname === "/api/auth") {
+    if (isAuthRoute) {
         return context.next();
     }
 

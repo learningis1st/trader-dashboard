@@ -10,7 +10,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const otp = formData.get("otp")?.toString();
 
     const redirectWithError = (msg: string) => {
-        const errorUrl = new URL("/login", context.request.url);
+        const errorUrl = new URL("/signup", context.request.url);
         errorUrl.searchParams.set("error", msg);
         return Response.redirect(errorUrl.toString(), 302);
     };
@@ -20,12 +20,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     const yubikeyId = otp.substring(0, YUBIKEY_ID_LENGTH).toLowerCase();
 
-    const dbResult = await context.env.DB.prepare(
-        "SELECT yubikey_id FROM yubikeys WHERE yubikey_id = ?"
-    ).bind(yubikeyId).first();
-
-    if (!dbResult) return Response.redirect(new URL("/signup", context.request.url).toString(), 302);
-
     try {
         const { YUBICO_CLIENT_ID, YUBICO_SECRET_KEY, SESSION_SECRET } = context.env;
         if (!YUBICO_CLIENT_ID || !YUBICO_SECRET_KEY || !SESSION_SECRET) {
@@ -34,6 +28,19 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
         const isValid = await verifyYubicoOTP(otp, YUBICO_CLIENT_ID, YUBICO_SECRET_KEY);
         if (!isValid) return redirectWithError("Invalid OTP");
+
+        // Safety check to ensure it wasn't registered between loading the page and posting
+        const existingKey = await context.env.DB.prepare(
+            "SELECT yubikey_id FROM yubikeys WHERE yubikey_id = ?"
+        ).bind(yubikeyId).first();
+
+        if (existingKey) {
+            return redirectWithError("YubiKey is already registered");
+        }
+
+        await context.env.DB.prepare(
+            "INSERT INTO yubikeys (yubikey_id) VALUES (?)"
+        ).bind(yubikeyId).run();
 
         const sessionCookieValue = await createSignedSessionValue(SESSION_SECRET, yubikeyId);
 
@@ -45,7 +52,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             }
         });
     } catch (error) {
-        console.error("Auth System Error:", error);
-        return redirectWithError("Verification Service Unavailable. Try again.");
+        console.error("Signup System Error:", error);
+        return redirectWithError("Registration Service Unavailable. Try again.");
     }
 };
