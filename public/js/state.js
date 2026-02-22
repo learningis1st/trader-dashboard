@@ -25,7 +25,7 @@ import { addSymbolWidget } from './widgets.js';
 
 const STORAGE_KEY = 'trader_dashboard_layout';
 const DEBOUNCE_LOCAL = 100;
-const DEBOUNCE_CLOUD = 1000;
+const DEBOUNCE_CLOUD = 200;
 
 let localDebounce = null;
 let cloudDebounce = null;
