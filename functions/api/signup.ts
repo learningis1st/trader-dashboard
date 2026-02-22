@@ -35,7 +35,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         ).bind(yubikeyId).first();
 
         if (existingKey) {
-            return redirectWithError("YubiKey is already registered");
+            return redirectWithError("This YubiKey is already registered");
         }
 
         await context.env.DB.prepare(
