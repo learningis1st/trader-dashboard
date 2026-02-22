@@ -24,7 +24,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         "SELECT yubikey_id FROM yubikeys WHERE yubikey_id = ?"
     ).bind(yubikeyId).first();
 
-    if (!dbResult) return Response.redirect(new URL("/signup", context.request.url).toString(), 302);
+    if (!dbResult) {
+        const signupUrl = new URL("/signup", context.request.url);
+        signupUrl.searchParams.set("error", "YubiKey not recognized. Please register it here.");
+        return Response.redirect(signupUrl.toString(), 302);
+    }
 
     try {
         const { YUBICO_CLIENT_ID, YUBICO_SECRET_KEY, SESSION_SECRET } = context.env;
