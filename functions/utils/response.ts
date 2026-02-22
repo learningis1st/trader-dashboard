@@ -4,4 +4,3 @@ export function jsonResponse(data: unknown, status = 200): Response {
         headers: { "Content-Type": "application/json" },
     });
 }
-
