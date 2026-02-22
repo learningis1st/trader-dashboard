@@ -34,9 +34,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             "SELECT yubikey_id FROM yubikeys WHERE yubikey_id = ?"
         ).bind(yubikeyId).first();
 
-        if (existingKey) {
-            return redirectWithError("This YubiKey is already registered");
-        }
+        if (existingKey) return redirectWithError("This YubiKey is already registered");
 
         await context.env.DB.prepare(
             "INSERT INTO yubikeys (yubikey_id) VALUES (?)"
