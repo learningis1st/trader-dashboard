@@ -1,7 +1,8 @@
 import { state } from './state.js';
 import { escapeHtml } from './utils.js';
 import { saveState } from './state.js';
-import { fetchData, updateEmptyHint } from './data.js';
+import { fetchData } from './data.js';
+import { updateEmptyHint } from './ui.js';
 
 export function setupMagicInput() {
     const modal = document.getElementById('magic-modal');

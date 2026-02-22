@@ -1,6 +1,7 @@
 import { LIMITS } from './config.js';
 import { state } from './state.js';
-import { startRefreshInterval, fetchData, reRenderUI } from './data.js';
+import { startRefreshInterval, fetchData } from './data.js';
+import { reRenderUI } from './ui.js';
 
 const STORAGE_KEY = 'trader_dashboard_settings';
 
