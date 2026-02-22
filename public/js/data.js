@@ -1,7 +1,6 @@
 import { state } from './state.js';
 import { getSymbolsToFetch } from './market.js';
 import { renderQuotes, updateEmptyHint } from './ui.js';
-import { removeSymbol } from './widgets.js';
 
 export function startRefreshInterval() {
     clearInterval(state.refreshInterval);
@@ -24,8 +23,19 @@ export async function fetchData() {
             if (data) {
                 if (data.errors && data.errors.invalidSymbols) {
                     data.errors.invalidSymbols.forEach(sym => {
-                        removeSymbol(sym);
-                        console.warn(`Removed invalid symbol: ${sym}`);
+                        state.assetTypeCache[sym] = 'INVALID';
+
+                        const priceEl = document.getElementById(`price-${sym}`);
+                        const chgEl = document.getElementById(`chg-${sym}`);
+                        const pctEl = document.getElementById(`pct-${sym}`);
+
+                        if (priceEl) {
+                            priceEl.innerText = 'ERR';
+                            priceEl.classList.remove('text-gray-300');
+                            priceEl.classList.add('text-[#f87171]');
+                        }
+                        if (chgEl) chgEl.innerText = 'INVALID';
+                        if (pctEl) pctEl.innerText = 'SYMBOL';
                     });
                     delete data.errors;
                 }

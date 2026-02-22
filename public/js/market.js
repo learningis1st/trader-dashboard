@@ -70,6 +70,8 @@ function isWeekendGap(fridayCloseHour = 17, sundayOpenHour = 18) {
 export function getSymbolsToFetch(symbolAssetMap) {
     return Object.entries(symbolAssetMap)
         .filter(([, assetType]) => {
+            if (assetType === 'INVALID') return false;
+
             const marketKey = ASSET_TO_MARKET_MAP[assetType];
 
             if (marketKey === 'equity') {
