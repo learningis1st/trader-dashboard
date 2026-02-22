@@ -22,8 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(user => {
             if (user.is_paying) {
-                LIMITS.REFRESH_RATE.MIN = 500;
-                document.getElementById('refresh-rate-input').min = 500;
+                LIMITS.REFRESH_RATE.MIN = 1000;
+                document.getElementById('refresh-rate-input').min = 1000;
             } else if (state.REFRESH_RATE < 5000) {
                 state.REFRESH_RATE = 5000;
                 saveSettings();
