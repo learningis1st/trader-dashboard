@@ -71,7 +71,7 @@ async function handleAuth(context: EventContext<Env, string, Record<string, unkn
     const yubikeyId = otp.substring(0, YUBIKEY_ID_LENGTH).toLowerCase();
 
     const dbResult = await context.env.DB.prepare(
-        "SELECT yubikey_id FROM allowed_yubikeys WHERE yubikey_id = ?"
+        "SELECT yubikey_id FROM yubikeys WHERE yubikey_id = ?"
     ).bind(yubikeyId).first();
 
     if (!dbResult) {

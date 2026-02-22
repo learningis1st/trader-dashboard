@@ -1,6 +1,6 @@
 -- Run: wrangler d1 execute <DB_NAME> --file=./schema.sql
 
-CREATE TABLE IF NOT EXISTS allowed_yubikeys (
+CREATE TABLE IF NOT EXISTS yubikeys (
     yubikey_id TEXT PRIMARY KEY,
     description TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
