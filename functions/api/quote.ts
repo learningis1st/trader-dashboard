@@ -24,8 +24,12 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         const rawData = await resp.json();
         const filteredData: Record<string, any> = {};
 
-        // Strip out the heavy unused data
         for (const [symbol, data] of Object.entries(rawData)) {
+            if (symbol === 'errors') {
+                filteredData[symbol] = data;
+                continue;
+            }
+
             const typedData = data as any;
             const quote = typedData.quote || {};
 

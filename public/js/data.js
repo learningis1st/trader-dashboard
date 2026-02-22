@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import { getSymbolsToFetch } from './market.js';
 import { renderQuotes, updateEmptyHint } from './ui.js';
+import { removeSymbol } from './widgets.js';
 
 export function startRefreshInterval() {
     clearInterval(state.refreshInterval);
@@ -21,6 +22,14 @@ export async function fetchData() {
         if (uncached.length > 0) {
             const data = await fetchQuote(uncached);
             if (data) {
+                if (data.errors && data.errors.invalidSymbols) {
+                    data.errors.invalidSymbols.forEach(sym => {
+                        removeSymbol(sym);
+                        console.warn(`Removed invalid symbol: ${sym}`);
+                    });
+                    delete data.errors;
+                }
+
                 cacheAssetTypes(data);
                 renderQuotes(data);
             }
