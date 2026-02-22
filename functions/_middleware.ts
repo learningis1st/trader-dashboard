@@ -137,7 +137,7 @@ async function verifySessionCookie(
         if (!data.yubikeyId) return null;
 
         const dbResult = await db.prepare(
-            "SELECT yubikey_id FROM allowed_yubikeys WHERE yubikey_id = ?"
+            "SELECT yubikey_id FROM yubikeys WHERE yubikey_id = ?"
         ).bind(data.yubikeyId.toLowerCase()).first();
 
         if (!dbResult) {
