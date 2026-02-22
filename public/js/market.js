@@ -45,7 +45,7 @@ function isWithinSessionHours(sessionHours) {
     });
 }
 
-function isWeekendGap() {
+function isWeekendGap(fridayCloseHour = 17, sundayOpenHour = 18) {
     const now = new Date();
 
     const formatter = new Intl.DateTimeFormat('en-US', {
@@ -66,8 +66,8 @@ function isWeekendGap() {
     const day = days[weekdayStr];
 
     if (day === 6) return true; // Saturday
-    if (day === 5 && hour >= 17) return true; // Friday after 5pm ET
-    if (day === 0 && hour < 18) return true;  // Sunday before 6pm ET
+    if (day === 5 && hour >= fridayCloseHour) return true; // Friday after close ET
+    if (day === 0 && hour < sundayOpenHour) return true;  // Sunday before open ET
     return false;
 }
 
@@ -76,12 +76,11 @@ export function getSymbolsToFetch(symbolAssetMap) {
         .filter(([, assetType]) => {
             const marketKey = ASSET_TO_MARKET_MAP[assetType];
 
-            // Equity: Only check isOpen (24/5 trading)
+            // Equity: 24/5 overnight trading support
+            // Fetch always, except during the weekend gap (Fri 8 PM - Sun 8 PM ET)
             if (marketKey === 'equity') {
                 if (!cache?.[marketKey]) return false;
-                return Object.values(cache[marketKey]).some(product =>
-                    product.isOpen
-                );
+                return !isWeekendGap(20, 20);
             }
 
             // Strict Session Checks: Option, Bond
@@ -94,8 +93,8 @@ export function getSymbolsToFetch(symbolAssetMap) {
             }
 
             // Continuous Trading: Future, Forex
-            // Fetch always, except during the weekend gap
-            return !isWeekendGap();
+            // Fetch always, except during the standard weekend gap (Fri 5 PM - Sun 6 PM ET)
+            return !isWeekendGap(17, 18);
         })
         .map(([symbol]) => symbol);
 }
