@@ -47,20 +47,16 @@ function isWithinSessionHours(sessionHours) {
 
 function isWeekendGap(fridayCloseHour = 17, sundayOpenHour = 18) {
     const now = new Date();
-
     const formatter = new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/New_York',
         weekday: 'short',
         hour: 'numeric',
         hour12: false
     });
-
     const parts = formatter.formatToParts(now);
     const getPart = (type) => parts.find(p => p.type === type)?.value;
-
     const weekdayStr = getPart('weekday');
     const hourStr = getPart('hour');
-
     const hour = parseInt(hourStr, 10);
     const days = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
     const day = days[weekdayStr];
@@ -76,15 +72,11 @@ export function getSymbolsToFetch(symbolAssetMap) {
         .filter(([, assetType]) => {
             const marketKey = ASSET_TO_MARKET_MAP[assetType];
 
-            // Equity: 24/5 overnight trading support
-            // Fetch always, except during the weekend gap (Fri 8 PM - Sun 8 PM ET)
             if (marketKey === 'equity') {
                 if (!cache?.[marketKey]) return false;
                 return !isWeekendGap(20, 20);
             }
 
-            // Strict Session Checks: Option, Bond
-            // Must be explicitly Open AND within an active session
             if (['option', 'bond'].includes(marketKey)) {
                 if (!cache?.[marketKey]) return false;
                 return Object.values(cache[marketKey]).some(product =>
@@ -92,8 +84,6 @@ export function getSymbolsToFetch(symbolAssetMap) {
                 );
             }
 
-            // Continuous Trading: Future, Forex
-            // Fetch always, except during the standard weekend gap (Fri 5 PM - Sun 6 PM ET)
             return !isWeekendGap(17, 18);
         })
         .map(([symbol]) => symbol);

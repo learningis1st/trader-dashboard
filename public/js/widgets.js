@@ -1,6 +1,5 @@
-import { state } from './state.js';
+import { state, saveState } from './state.js';
 import { escapeHtml } from './utils.js';
-import { saveState } from './state.js';
 import { fetchData } from './data.js';
 import { updateEmptyHint } from './ui.js';
 

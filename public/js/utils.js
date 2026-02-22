@@ -38,7 +38,6 @@ export function formatNumber(num, maxDecimals) {
     if (Number.isInteger(parsed) || (parsed * 10) % 1 === 0) {
         return parsed.toFixed(2);
     }
-
     return parsed.toString();
 }
 

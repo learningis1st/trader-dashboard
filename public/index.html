@@ -4,23 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trader Dashboard</title>
-    
     <style>body { opacity: 0; transition: opacity 0.4s ease-in-out; }</style>
-
     <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.3.1/gridstack.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="min-h-screen w-screen overflow-x-hidden overflow-y-auto">
     <div class="grid-stack p-4"></div>
-
     <div id="empty-hint" class="hidden fixed inset-0 flex items-center justify-center pointer-events-none z-10">
         <div class="text-center text-gray-500">
             <i class="fas fa-chart-line text-4xl mb-4 opacity-50"></i>
             <p class="text-lg">Press <kbd class="px-2 py-1 bg-gray-700 rounded text-gray-300">`</kbd> to add a symbol</p>
         </div>
     </div>
-
     <div id="magic-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-50">
         <div class="bg-gray-800 p-6 rounded-lg shadow-2xl border border-gray-700 w-96">
             <label class="block text-gray-400 text-sm font-bold mb-2">ADD SYMBOL</label>
@@ -30,18 +26,15 @@
             <div class="mt-2 text-xs text-gray-500">Press ENTER to add, ESC to cancel</div>
         </div>
     </div>
-
     <button id="settings-btn" class="settings-btn" title="Settings">
         <i class="fas fa-cog text-lg"></i>
     </button>
-
     <div id="settings-modal" class="settings-modal hidden">
         <div class="settings-panel">
             <div class="settings-title">
                 <i class="fas fa-cog"></i>
                 Settings
             </div>
-
             <div class="settings-group">
                 <label class="settings-label" for="refresh-rate-input">
                     Refresh Rate (ms)
@@ -52,7 +45,6 @@
                 <input type="number" id="refresh-rate-input" class="settings-input"
                        min="5000" max="10000" step="100" placeholder="5000">
             </div>
-
             <div class="settings-group">
                 <label class="settings-label">
                     Default Widget Size
@@ -75,7 +67,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="settings-group">
                 <label class="settings-label" for="decimal-precision-input">
                     Decimal Precision: <span id="decimal-precision-value" class="settings-value">2</span>
@@ -85,7 +76,6 @@
                 </label>
                 <input type="range" id="decimal-precision-input" class="settings-slider" min="2" max="6" step="1">
             </div>
-
             <div class="settings-group">
                 <label class="settings-label">
                     Price Display Type
@@ -101,14 +91,12 @@
                     </label>
                 </div>
             </div>
-
             <div class="settings-actions">
                 <button id="settings-cancel" class="settings-btn-cancel">Cancel</button>
                 <button id="settings-save" class="settings-btn-save">Save</button>
             </div>
         </div>
     </div>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.3.1/gridstack-all.js"></script>
     <script type="module" src="app.js"></script>
     <script>window.addEventListener('load', () => document.body.style.opacity = '1');</script>
