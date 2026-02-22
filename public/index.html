@@ -77,16 +77,22 @@
             </div>
 
             <div class="settings-group">
-                <label class="settings-label" for="price-type-input">
+                <label class="settings-label">
                     Price Display Type
-                    <span class="settings-info" data-tooltip="Choose between Mark price or Last Traded price.">
+                    <span class="settings-info" data-tooltip="Choose between mark or last traded price.">
                         <i class="fas fa-info-circle"></i>
                     </span>
                 </label>
-                <select id="price-type-input" class="settings-input">
-                    <option value="mark">Mark Price</option>
-                    <option value="lastPrice">Last Traded Price</option>
-                </select>
+                <div class="settings-row" style="margin-top: 8px;">
+                    <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer hover:text-white transition-colors">
+                        <input type="radio" name="priceType" value="mark" class="w-4 h-4 accent-blue-500 cursor-pointer">
+                        Mark Price
+                    </label>
+                    <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer hover:text-white transition-colors ml-4">
+                        <input type="radio" name="priceType" value="lastPrice" class="w-4 h-4 accent-blue-500 cursor-pointer">
+                        Last Traded Price
+                    </label>
+                </div>
             </div>
 
             <div class="settings-group">
