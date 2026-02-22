@@ -3,9 +3,30 @@ import { escapeHtml } from './utils.js';
 import { fetchData } from './data.js';
 import { updateEmptyHint } from './ui.js';
 
+async function checkSymbolIsValid(symbol) {
+    try {
+        const res = await fetch(`/api/quote?symbols=${encodeURIComponent(symbol)}&fields=quote`);
+        if (res.redirected && res.url.includes('/login')) {
+            window.location.reload();
+            return false;
+        }
+        if (!res.ok) return true; // Let it through if API is temporarily down
+
+        const data = await res.json();
+        if (data.errors && data.errors.invalidSymbols && data.errors.invalidSymbols.includes(symbol)) {
+            return false;
+        }
+        return true;
+    } catch (err) {
+        console.error('Symbol validation failed:', err);
+        return true; // Fallback: let the background polling catch it later
+    }
+}
+
 export function setupMagicInput() {
     const modal = document.getElementById('magic-modal');
     const input = document.getElementById('symbol-input');
+    let isSubmitting = false;
 
     const closeModal = () => modal.classList.add('hidden');
     const openModal = () => {
@@ -26,13 +47,32 @@ export function setupMagicInput() {
         }
     });
 
-    input.addEventListener('keydown', e => {
+    input.addEventListener('keydown', async e => {
         if (e.key === 'Enter') {
+            if (isSubmitting) return;
+
             const symbol = input.value.trim().toUpperCase();
             if (symbol) {
+                isSubmitting = true;
+                input.disabled = true;
+
+                const isValid = await checkSymbolIsValid(symbol);
+
+                if (!isValid) {
+                    alert(`Invalid symbol: ${symbol}`);
+                    input.disabled = false;
+                    isSubmitting = false;
+                    input.focus();
+                    input.select();
+                    return;
+                }
+
                 addSymbolWidget(symbol);
                 closeModal();
                 fetchData();
+
+                input.disabled = false;
+                isSubmitting = false;
             }
         } else if (e.key === 'Escape') {
             closeModal();
@@ -115,8 +155,12 @@ export function editTicker(oldSymbol, el) {
     input.className = 'bg-gray-700 text-white responsive-symbol font-bold w-[50cqmin] px-1 rounded border border-blue-500 uppercase focus:outline-none';
 
     const parent = el.parentNode;
+    let isFinishing = false;
 
-    const finish = () => {
+    const finish = async () => {
+        if (isFinishing) return;
+        isFinishing = true;
+
         const newSymbol = input.value.trim().toUpperCase();
 
         if (!newSymbol || newSymbol === oldSymbol) {
@@ -127,6 +171,21 @@ export function editTicker(oldSymbol, el) {
         if (state.symbolList.includes(newSymbol)) {
             alert(`Symbol ${newSymbol} is already on the dashboard.`);
             parent.replaceChild(el, input);
+            return;
+        }
+
+        input.disabled = true;
+        const isValid = await checkSymbolIsValid(newSymbol);
+
+        if (!isValid) {
+            alert(`Invalid symbol: ${newSymbol}`);
+            input.disabled = false;
+            isFinishing = false;
+
+            setTimeout(() => {
+                input.focus();
+                input.select();
+            }, 10);
             return;
         }
 
