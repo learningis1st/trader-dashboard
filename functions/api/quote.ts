@@ -20,7 +20,30 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     try {
         const resp = await fetch(url.toString());
         if (!resp.ok) throw new Error(`API error: ${resp.status}`);
-        return jsonResponse(await resp.json());
+
+        const rawData = await resp.json();
+        const filteredData: Record<string, any> = {};
+
+        // Strip out the heavy unused data
+        for (const [symbol, data] of Object.entries(rawData)) {
+            const typedData = data as any;
+            const quote = typedData.quote || {};
+
+            filteredData[symbol] = {
+                assetMainType: typedData.assetMainType,
+                quote: {
+                    mark: quote.mark,
+                    lastPrice: quote.lastPrice,
+                    markChange: quote.markChange,
+                    netChange: quote.netChange,
+                    markPercentChange: quote.markPercentChange,
+                    netPercentChange: quote.netPercentChange,
+                    futurePercentChange: quote.futurePercentChange
+                }
+            };
+        }
+
+        return jsonResponse(filteredData);
     } catch (error) {
         console.error('Quote proxy error:', error);
         return jsonResponse({ error: 'Failed to fetch quote' }, 500);
