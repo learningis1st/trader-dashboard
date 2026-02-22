@@ -3,10 +3,7 @@ import { jsonResponse } from "../utils/response";
 
 export const onRequest: PagesFunction<Env> = async (context) => {
     const userId = context.data.yubikeyId as string;
-
-    if (!userId) {
-        return jsonResponse({ error: "Unauthorized" }, 401);
-    }
+    if (!userId) return jsonResponse({ error: "Unauthorized" }, 401);
 
     const { method } = context.request;
 

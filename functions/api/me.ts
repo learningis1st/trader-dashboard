@@ -3,10 +3,7 @@ import { jsonResponse } from "../utils/response";
 
 export const onRequest: PagesFunction<Env> = async (context) => {
     const userId = context.data.yubikeyId as string;
-
-    if (!userId) {
-        return jsonResponse({ error: 'Unauthorized' }, 401);
-    }
+    if (!userId) return jsonResponse({ error: 'Unauthorized' }, 401);
 
     try {
         const result = await context.env.DB.prepare(
@@ -17,7 +14,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             yubikey_id: userId,
             is_paying: !!result?.is_paying
         });
-    } catch (error) {
+    } catch {
         return jsonResponse({ error: "Failed to fetch user profile" }, 500);
     }
 };

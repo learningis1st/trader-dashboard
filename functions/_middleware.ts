@@ -29,7 +29,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         return context.next();
     }
 
-    // Allow access to login page and the new auth API endpoint
+    // Allow access to login page and the auth API endpoint
     if (url.pathname === "/login" || url.pathname === "/api/auth") {
         return context.next();
     }
