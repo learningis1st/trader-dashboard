@@ -77,6 +77,16 @@
             </div>
 
             <div class="settings-group">
+                <label class="settings-label" for="decimal-precision-input">
+                    Decimal Precision: <span id="decimal-precision-value" class="settings-value">2</span>
+                    <span class="settings-info" data-tooltip="Low-value assets show more decimal places automatically.">
+                        <i class="fas fa-info-circle"></i>
+                    </span>
+                </label>
+                <input type="range" id="decimal-precision-input" class="settings-slider" min="2" max="6" step="1">
+            </div>
+
+            <div class="settings-group">
                 <label class="settings-label">
                     Price Display Type
                 </label>
@@ -90,16 +100,6 @@
                         Last traded
                     </label>
                 </div>
-            </div>
-
-            <div class="settings-group">
-                <label class="settings-label" for="decimal-precision-input">
-                    Decimal Precision: <span id="decimal-precision-value" class="settings-value">2</span>
-                    <span class="settings-info" data-tooltip="Low-value assets show more decimal places automatically.">
-                        <i class="fas fa-info-circle"></i>
-                    </span>
-                </label>
-                <input type="range" id="decimal-precision-input" class="settings-slider" min="2" max="6" step="1">
             </div>
 
             <div class="settings-actions">
