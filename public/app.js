@@ -15,21 +15,22 @@ document.addEventListener('DOMContentLoaded', () => {
         disableOneColumnMode: true
     });
 
-    loadSettings();
-
     fetch('/api/me')
         .then(res => res.json())
         .then(user => {
             if (user.is_paying) {
                 LIMITS.REFRESH_RATE.MIN = 1000;
                 document.getElementById('refresh-rate-input').min = 1000;
-            } else if (state.REFRESH_RATE < 5000) {
-                state.REFRESH_RATE = 5000;
-                saveSettings();
             }
         })
         .catch(console.error)
         .finally(() => {
+            loadSettings();
+
+            if (state.REFRESH_RATE < 5000 && LIMITS.REFRESH_RATE.MIN === 5000) {
+                saveSettings();
+            }
+
             loadState().then(async () => {
                 await fetchMarketHours();
                 fetchData();
