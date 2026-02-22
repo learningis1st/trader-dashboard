@@ -38,9 +38,7 @@ export async function verifySessionCookie(
             "SELECT yubikey_id FROM yubikeys WHERE yubikey_id = ?"
         ).bind(data.yubikeyId.toLowerCase()).first();
 
-        if (!dbResult) {
-            return null;
-        }
+        if (!dbResult) return null;
 
         return { yubikeyId: data.yubikeyId };
     } catch {
