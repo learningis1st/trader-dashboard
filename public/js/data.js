@@ -100,9 +100,17 @@ function updateUI(data) {
 
         if (!els.price || !els.chg || !els.pct) continue;
 
-        const price = quote.lastPrice || 0;
-        const change = quote.netChange || 0;
-        const changePct = quote.netPercentChange || quote.futurePercentChange || 0;
+        let price, change, changePct;
+
+        if (state.PRICE_TYPE === 'mark') {
+            price = quote.mark || quote.lastPrice || 0;
+            change = quote.markChange || quote.netChange || 0;
+            changePct = quote.markPercentChange || quote.netPercentChange || 0;
+        } else {
+            price = quote.lastPrice || 0;
+            change = quote.netChange || 0;
+            changePct = quote.netPercentChange || quote.futurePercentChange || 0;
+        }
 
         handlePriceFlash(els.price, symbol, price);
         updatePriceDisplay(els, price, change, changePct);

@@ -77,6 +77,19 @@
             </div>
 
             <div class="settings-group">
+                <label class="settings-label" for="price-type-input">
+                    Price Display Type
+                    <span class="settings-info" data-tooltip="Choose between Mark price or Last Traded price.">
+                        <i class="fas fa-info-circle"></i>
+                    </span>
+                </label>
+                <select id="price-type-input" class="settings-input">
+                    <option value="mark">Mark Price</option>
+                    <option value="lastPrice">Last Traded Price</option>
+                </select>
+            </div>
+
+            <div class="settings-group">
                 <label class="settings-label" for="decimal-precision-input">
                     Decimal Precision: <span id="decimal-precision-value" class="settings-value">2</span>
                     <span class="settings-info" data-tooltip="Decimal places for prices. Low-value assets show more automatically.">
