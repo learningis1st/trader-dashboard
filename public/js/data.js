@@ -114,7 +114,7 @@ function updateUI(data) {
         if (state.PRICE_TYPE === 'mark') {
             price = quote.mark || quote.lastPrice || 0;
             change = quote.markChange || quote.netChange || 0;
-            changePct = quote.markPercentChange || quote.netPercentChange || 0;
+            changePct = quote.markPercentChange || quote.futurePercentChange || quote.netPercentChange || 0;
         } else {
             price = quote.lastPrice || 0;
             change = quote.netChange || 0;
