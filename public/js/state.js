@@ -1,6 +1,6 @@
 export const state = {
     // User settings
-    REFRESH_RATE: 1000,
+    REFRESH_RATE: 5000,
     DEFAULT_WIDGET_WIDTH: 2,
     DEFAULT_WIDGET_HEIGHT: 2,
     PRICE_TYPE: 'mark',

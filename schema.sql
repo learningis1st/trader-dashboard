@@ -3,6 +3,7 @@
 CREATE TABLE IF NOT EXISTS yubikeys (
     yubikey_id TEXT PRIMARY KEY,
     description TEXT,
+    is_paying INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
