@@ -45,6 +45,17 @@ function isWithinSessionHours(sessionHours) {
     });
 }
 
+export function isEquityOvernight() {
+    if (!cache || !cache.equity) return false;
+    if (isWeekendGap(20, 20)) return false;
+
+    const inSession = Object.values(cache.equity).some(product =>
+        product.isOpen && isWithinSessionHours(product.sessionHours)
+    );
+
+    return !inSession;
+}
+
 function isWeekendGap(fridayCloseHour = 17, sundayOpenHour = 18) {
     const now = new Date();
     const formatter = new Intl.DateTimeFormat('en-US', {

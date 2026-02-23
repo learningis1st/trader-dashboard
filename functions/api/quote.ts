@@ -32,6 +32,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
             const typedData = data as any;
             const quote = typedData.quote || {};
+            const extended = typedData.extended;
 
             filteredData[symbol] = {
                 assetMainType: typedData.assetMainType,
@@ -43,7 +44,19 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                     markPercentChange: quote.markPercentChange,
                     netPercentChange: quote.netPercentChange,
                     futurePercentChange: quote.futurePercentChange
-                }
+                },
+                ...(extended ? {
+                    extended: {
+                        mark: extended.mark,
+                        lastPrice: extended.lastPrice,
+                        askPrice: extended.askPrice,
+                        bidPrice: extended.bidPrice,
+                        markChange: extended.markChange,
+                        netChange: extended.netChange,
+                        markPercentChange: extended.markPercentChange,
+                        netPercentChange: extended.netPercentChange
+                    }
+                } : {})
             };
         }
 

@@ -1,5 +1,6 @@
 import { state } from './state.js';
 import { getAppropriateDecimals, formatPrice, formatNumber } from './utils.js';
+import { isEquityOvernight } from './market.js';
 
 const COLORS = {
     positive: 'text-[#4ade80]',
@@ -22,11 +23,18 @@ export function reRenderUI() {
 }
 
 export function renderQuotes(data) {
-    for (const [symbol, { quote }] of Object.entries(data)) {
+    const overnight = isEquityOvernight();
+
+    for (const [symbol, info] of Object.entries(data)) {
+        let quote = info.quote;
+
+        if (overnight && info.assetMainType === 'EQUITY' && info.extended) {
+            quote = info.extended;
+        }
+
         if (!quote) continue;
 
-        // Cache the quote for offline re-renders
-        state.lastQuotes[symbol] = { quote };
+        state.lastQuotes[symbol] = info;
 
         const els = {
             price: document.getElementById(`price-${symbol}`),
