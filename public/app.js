@@ -1,5 +1,6 @@
 import { state, loadState, saveState } from './js/state.js';
-import { loadSettings, setupSettingsModal, saveSettings } from './js/settings.js';
+import { loadSettings, saveSettings } from './js/settingsStore.js';
+import { setupSettingsModal } from './js/settingsUI.js';
 import { setupMagicInput } from './js/widgets.js';
 import { fetchData, startRefreshInterval } from './js/data.js';
 import { LIMITS } from './js/config.js';
