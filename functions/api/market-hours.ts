@@ -1,40 +1,16 @@
 import { Env } from "../utils/env";
 import { jsonResponse } from "../utils/response";
-
-const MARKET_HOURS_API = 'https://finance.learningis1.st/markets?markets=equity,option,bond';
-
-const getTodayET = () =>
-    new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+import { fetchMarketSchedule, getTodayET } from "../utils/market-schedule";
 
 export const onRequest: PagesFunction<Env> = async (context) => {
     const userId = context.data.yubikeyId as string;
     if (!userId) return jsonResponse({ error: 'Unauthorized' }, 401);
 
-    const today = getTodayET();
-
     try {
-        const cached = await context.env.DB
-            .prepare('SELECT data FROM market_hours WHERE date = ?')
-            .bind(today)
-            .first<{ data: string }>();
-
-        if (cached?.data) {
-            return jsonResponse({ date: today, data: JSON.parse(cached.data) });
-        }
-
-        const response = await fetch(MARKET_HOURS_API);
-        if (!response.ok) throw new Error(`API error: ${response.status}`);
-
-        const marketData = await response.json();
-
-        await context.env.DB
-            .prepare('INSERT OR REPLACE INTO market_hours (date, data, created_at) VALUES (?, ?, ?)')
-            .bind(today, JSON.stringify(marketData), Date.now())
-            .run();
-
-        return jsonResponse({ date: today, data: marketData });
+        const result = await fetchMarketSchedule(context.env);
+        return jsonResponse(result);
     } catch (error) {
         console.error('Market hours error:', error);
-        return jsonResponse({ date: today, data: null, error: 'Failed to fetch' }, 500);
+        return jsonResponse({ date: getTodayET(), data: null, error: 'Failed to fetch' }, 500);
     }
 };

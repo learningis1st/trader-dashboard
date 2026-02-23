@@ -1,24 +1,5 @@
 import { Env } from "./env";
-
-const MARKET_HOURS_API = 'https://finance.learningis1.st/markets?markets=equity,option,bond';
-
-const getTodayET = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-
-async function fetchMarketSchedule(env: Env) {
-    const today = getTodayET();
-
-    const cached = await env.DB.prepare('SELECT data FROM market_hours WHERE date = ?').bind(today).first<{ data: string }>();
-    if (cached?.data) return JSON.parse(cached.data);
-
-    const response = await fetch(MARKET_HOURS_API);
-    if (!response.ok) return null;
-
-    const cacheData = await response.json();
-    await env.DB.prepare('INSERT OR REPLACE INTO market_hours (date, data, created_at) VALUES (?, ?, ?)')
-        .bind(today, JSON.stringify(cacheData), Date.now()).run();
-
-    return cacheData;
-}
+import { fetchMarketSchedule } from "./market-schedule";
 
 export function evaluateOvernightStatus(cacheData: any, targetDate: Date = new Date()): Record<string, boolean> {
     const status: Record<string, boolean> = { EQUITY: false, OPTION: false, BOND: false };
@@ -65,8 +46,9 @@ export function evaluateOvernightStatus(cacheData: any, targetDate: Date = new D
 
 export async function getOvernightStatus(env: Env): Promise<Record<string, boolean>> {
     try {
-        const scheduleData = await fetchMarketSchedule(env);
-        return evaluateOvernightStatus(scheduleData);
+        // Use the centralized fetching logic
+        const scheduleResult = await fetchMarketSchedule(env);
+        return evaluateOvernightStatus(scheduleResult.data);
     } catch (e) {
         return { EQUITY: false, OPTION: false, BOND: false };
     }
