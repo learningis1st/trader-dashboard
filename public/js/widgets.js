@@ -1,4 +1,5 @@
-import { state, saveState } from './state.js';
+import { state } from './state.js';
+import { saveLayout } from './layoutStore.js';
 import { escapeHtml } from './utils.js';
 import { fetchData } from './data.js';
 
@@ -98,7 +99,7 @@ export function addSymbolWidget(symbol, options = null) {
         id: safeSymbol
     });
 
-    saveState();
+    saveLayout();
     window.dispatchEvent(new CustomEvent('update-empty-hint'));
 }
 
@@ -111,7 +112,7 @@ export function removeSymbol(symbol) {
     delete state.previousPrices[symbol];
     delete state.assetTypeCache[symbol];
 
-    saveState();
+    saveLayout();
     window.dispatchEvent(new CustomEvent('update-empty-hint'));
 }
 

@@ -1,4 +1,5 @@
-import { state, loadState, saveState } from './js/state.js';
+import { state } from './js/state.js';
+import { loadLayout, saveLayout } from './js/layoutStore.js';
 import { loadSettings, saveSettings } from './js/settingsStore.js';
 import { setupSettingsModal } from './js/settingsUI.js';
 import { setupMagicInput } from './js/widgets.js';
@@ -32,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveSettings();
             }
 
-            loadState().then(() => {
+            loadLayout().then(() => {
                 fetchData();
                 startRefreshInterval();
             });
@@ -40,5 +41,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupMagicInput();
     setupSettingsModal();
-    state.grid.on('change', saveState);
+    state.grid.on('change', saveLayout);
 });
