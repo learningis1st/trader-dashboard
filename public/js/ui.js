@@ -26,14 +26,6 @@ export function renderQuotes(data) {
     const overnight = isEquityOvernight();
 
     for (const [symbol, info] of Object.entries(data)) {
-        let quote = info.quote;
-
-        if (overnight && info.assetMainType === 'EQUITY' && info.extended) {
-            quote = info.extended;
-        }
-
-        if (!quote) continue;
-
         state.lastQuotes[symbol] = info;
 
         const els = {
@@ -46,14 +38,26 @@ export function renderQuotes(data) {
 
         let price, change, changePct;
 
-        if (state.PRICE_TYPE === 'mark') {
-            price = quote.mark || quote.lastPrice || 0;
-            change = quote.markChange || quote.netChange || 0;
-            changePct = quote.markPercentChange || quote.futurePercentChange || quote.netPercentChange || 0;
+        // Calculate overnight extended prices manually
+        if (overnight && info.assetMainType === 'EQUITY' && info.extended && info.regular) {
+            price = info.extended.mark || info.extended.lastPrice || 0;
+            const prevClose = info.regular.regularMarketLastPrice || price;
+
+            change = price - prevClose;
+            changePct = prevClose !== 0 ? (change / prevClose) * 100 : 0;
         } else {
-            price = quote.lastPrice || 0;
-            change = quote.netChange || 0;
-            changePct = quote.netPercentChange || quote.futurePercentChange || 0;
+            const quote = info.quote || {};
+            if (!quote.lastPrice && !quote.mark) continue;
+
+            if (state.PRICE_TYPE === 'mark') {
+                price = quote.mark || quote.lastPrice || 0;
+                change = quote.markChange || quote.netChange || 0;
+                changePct = quote.markPercentChange || quote.futurePercentChange || quote.netPercentChange || 0;
+            } else {
+                price = quote.lastPrice || 0;
+                change = quote.netChange || 0;
+                changePct = quote.netPercentChange || quote.futurePercentChange || 0;
+            }
         }
 
         handlePriceFlash(els.price, symbol, price);

@@ -33,6 +33,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             const typedData = data as any;
             const quote = typedData.quote || {};
             const extended = typedData.extended;
+            const regular = typedData.regular;
 
             filteredData[symbol] = {
                 assetMainType: typedData.assetMainType,
@@ -50,11 +51,12 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                         mark: extended.mark,
                         lastPrice: extended.lastPrice,
                         askPrice: extended.askPrice,
-                        bidPrice: extended.bidPrice,
-                        markChange: extended.markChange,
-                        netChange: extended.netChange,
-                        markPercentChange: extended.markPercentChange,
-                        netPercentChange: extended.netPercentChange
+                        bidPrice: extended.bidPrice
+                    }
+                } : {}),
+                ...(regular ? {
+                    regular: {
+                        regularMarketLastPrice: regular.regularMarketLastPrice
                     }
                 } : {})
             };

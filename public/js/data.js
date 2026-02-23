@@ -74,7 +74,7 @@ function partitionSymbols() {
 
 async function fetchQuote(symbols) {
     const params = symbols.map(encodeURIComponent).join(',');
-    const response = await fetch(`/api/quote?symbols=${params}&fields=quote,extended`);
+    const response = await fetch(`/api/quote?symbols=${params}&fields=quote,extended,regular`);
 
     if (response.redirected && response.url.includes('/login')) {
         window.location.reload();
