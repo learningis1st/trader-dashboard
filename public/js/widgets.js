@@ -1,31 +1,38 @@
-import { state } from './state.js';
+import {
+    getState,
+    setIsRestoring,
+    setGrid,
+    clearSymbolList,
+    addSymbol,
+    removeSymbol as removeSymbolFromState
+} from './state.js';
 import { saveLayout } from './layoutStore.js';
 import { escapeHtml } from './utils.js';
 import { fetchData } from './data.js';
 import { createWidgetHtml } from './widgetTemplate.js';
 
 export function applyLayout(layout) {
-    state.isRestoring = true;
-    state.grid.batchUpdate();
-    state.grid.removeAll();
-    state.symbolList = [];
+    setIsRestoring(true);
+    getState().grid.batchUpdate();
+    getState().grid.removeAll();
+    clearSymbolList();
 
     layout.forEach(item => item.symbol && addSymbolWidget(item.symbol, item));
 
-    state.grid.commit();
-    state.isRestoring = false;
+    getState().grid.commit();
+    setIsRestoring(false);
 }
 
 export function addSymbolWidget(symbol, options = null) {
-    if (state.symbolList.includes(symbol)) return;
-    state.symbolList.push(symbol);
+    if (getState().symbolList.includes(symbol)) return;
+    addSymbol(symbol);
 
     const safeSymbol = escapeHtml(symbol);
 
-    state.grid.addWidget({
+    getState().grid.addWidget({
         ...(options || {
-            w: state.DEFAULT_WIDGET_WIDTH,
-            h: state.DEFAULT_WIDGET_HEIGHT,
+            w: getState().DEFAULT_WIDGET_WIDTH,
+            h: getState().DEFAULT_WIDGET_HEIGHT,
             autoPosition: true
         }),
         content: createWidgetHtml(safeSymbol),
@@ -40,10 +47,10 @@ export function removeSymbol(symbol) {
     const widget = document.getElementById(`widget-${symbol}`)?.closest('.grid-stack-item');
     if (!widget) return;
 
-    state.grid.removeWidget(widget);
-    state.symbolList = state.symbolList.filter(s => s !== symbol);
-    delete state.previousPrices[symbol];
-    delete state.assetTypeCache[symbol];
+    getState().grid.removeWidget(widget);
+    removeSymbolFromState(symbol);
+    delete getState().previousPrices[symbol];
+    delete getState().assetTypeCache[symbol];
 
     saveLayout();
     window.dispatchEvent(new CustomEvent('update-empty-hint'));
@@ -69,7 +76,7 @@ export function editTicker(oldSymbol, el) {
             return;
         }
 
-        if (state.symbolList.includes(newSymbol)) {
+        if (getState().symbolList.includes(newSymbol)) {
             alert(`Symbol ${newSymbol} is already on the dashboard.`);
             parent.replaceChild(el, input);
             return;
@@ -85,10 +92,10 @@ export function editTicker(oldSymbol, el) {
 
         const position = { x: node.x, y: node.y, w: node.w, h: node.h };
 
-        state.grid.removeWidget(widget);
-        state.symbolList = state.symbolList.filter(s => s !== oldSymbol);
-        delete state.previousPrices[oldSymbol];
-        delete state.assetTypeCache[oldSymbol];
+        getState().grid.removeWidget(widget);
+        removeSymbolFromState(oldSymbol);
+        delete getState().previousPrices[oldSymbol];
+        delete getState().assetTypeCache[oldSymbol];
 
         addSymbolWidget(newSymbol, position);
         fetchData();

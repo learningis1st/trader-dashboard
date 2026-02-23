@@ -1,19 +1,24 @@
-import { state } from './state.js';
+import {
+    getState,
+    setRefreshInterval,
+    setIsFetching,
+    setLastQuotes
+} from './state.js';
 
 export function startRefreshInterval() {
-    clearInterval(state.refreshInterval);
-    state.refreshInterval = setInterval(fetchData, state.REFRESH_RATE);
+    clearInterval(getState().refreshInterval);
+    setRefreshInterval(setInterval(fetchData, getState().REFRESH_RATE));
 }
 
 export async function fetchData() {
     window.dispatchEvent(new CustomEvent('update-empty-hint'));
 
-    if (state.symbolList.length === 0 || state.isFetching) return;
+    if (getState().symbolList.length === 0 || getState().isFetching) return;
 
-    state.isFetching = true;
+    setIsFetching(true);
 
     try {
-        const data = await fetchQuote(state.symbolList);
+        const data = await fetchQuote(getState().symbolList);
 
         if (data) {
             if (data.errors && data.errors.invalidSymbols) {
@@ -23,20 +28,20 @@ export async function fetchData() {
                 delete data.errors;
             }
 
-            Object.assign(state.lastQuotes, data);
+            setLastQuotes(data);
 
             window.dispatchEvent(new CustomEvent('quotes-updated', { detail: data }));
         }
     } catch (error) {
         console.error('Fetch failed:', error);
     } finally {
-        state.isFetching = false;
+        setIsFetching(false);
     }
 }
 
 export function updateUIFromCache() {
-    if (Object.keys(state.lastQuotes).length > 0) {
-        window.dispatchEvent(new CustomEvent('quotes-updated', { detail: state.lastQuotes }));
+    if (Object.keys(getState().lastQuotes).length > 0) {
+        window.dispatchEvent(new CustomEvent('quotes-updated', { detail: getState().lastQuotes }));
     }
 }
 
@@ -48,7 +53,7 @@ async function fetchQuote(symbols) {
         },
         body: JSON.stringify({
             symbols: symbols,
-            priceType: state.PRICE_TYPE
+            priceType: getState().PRICE_TYPE
         })
     });
 

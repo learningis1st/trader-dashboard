@@ -1,5 +1,12 @@
 import { LIMITS } from './config.js';
-import { state } from './state.js';
+import {
+    getState,
+    setRefreshRate,
+    setDefaultWidgetWidth,
+    setDefaultWidgetHeight,
+    setDecimalPrecision,
+    setPriceType
+} from './state.js';
 import { startRefreshInterval, fetchData, updateUIFromCache } from './data.js';
 import { saveSettings, clamp } from './settingsStore.js';
 
@@ -47,11 +54,11 @@ export function setupSettingsModal() {
     inputs.precision.addEventListener('input', updaters.precision);
 
     const openModal = () => {
-        inputs.refresh.value = state.REFRESH_RATE;
-        inputs.width.value = state.DEFAULT_WIDGET_WIDTH;
-        inputs.height.value = state.DEFAULT_WIDGET_HEIGHT;
-        inputs.precision.value = state.DECIMAL_PRECISION;
-        setPriceType(state.PRICE_TYPE || 'mark');
+        inputs.refresh.value = getState().REFRESH_RATE;
+        inputs.width.value = getState().DEFAULT_WIDGET_WIDTH;
+        inputs.height.value = getState().DEFAULT_WIDGET_HEIGHT;
+        inputs.precision.value = getState().DECIMAL_PRECISION;
+        setPriceType(getState().PRICE_TYPE || 'mark');
 
         Object.values(updaters).forEach(fn => fn());
         modal.classList.remove('hidden');
@@ -60,11 +67,11 @@ export function setupSettingsModal() {
     const closeModal = () => modal.classList.add('hidden');
 
     const saveAndClose = () => {
-        state.REFRESH_RATE = clamp(inputs.refresh.value, LIMITS.REFRESH_RATE);
-        state.DEFAULT_WIDGET_WIDTH = clamp(inputs.width.value, LIMITS.WIDGET_SIZE);
-        state.DEFAULT_WIDGET_HEIGHT = clamp(inputs.height.value, LIMITS.WIDGET_SIZE);
-        state.DECIMAL_PRECISION = clamp(inputs.precision.value, LIMITS.DECIMAL_PRECISION);
-        state.PRICE_TYPE = getPriceType();
+        setRefreshRate(clamp(inputs.refresh.value, LIMITS.REFRESH_RATE));
+        setDefaultWidgetWidth(clamp(inputs.width.value, LIMITS.WIDGET_SIZE));
+        setDefaultWidgetHeight(clamp(inputs.height.value, LIMITS.WIDGET_SIZE));
+        setDecimalPrecision(clamp(inputs.precision.value, LIMITS.DECIMAL_PRECISION));
+        setPriceType(getPriceType());
 
         saveSettings();
 
