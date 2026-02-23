@@ -1,10 +1,9 @@
 import { Env } from "../utils/env";
 import { jsonResponse } from "../utils/response";
 import { getOvernightStatus } from "../utils/market-status";
+import { calculateDisplayQuote } from "../utils/pricing";
 
 const QUOTE_API = 'https://finance.learningis1.st/quote';
-
-const cleanFloat = (num: number) => Number(num.toFixed(6));
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
     const userId = context.data.yubikeyId as string;
@@ -44,43 +43,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             }
 
             const typedData = data as any;
-            const quote = typedData.quote || {};
-            const extended = typedData.extended;
-            const regular = typedData.regular;
+            const isOvernight = overnightStatus[typedData.assetMainType] || false;
 
-            let price = 0, change = 0, changePct = 0;
-
-            const assetType = typedData.assetMainType;
-            const isOvernight = overnightStatus[assetType] || false;
-            const useExtended = isOvernight && extended && regular;
-
-            if (useExtended) {
-                price = extended.mark || extended.lastPrice || 0;
-                const prevClose = regular.regularMarketLastPrice || price;
-                change = price - prevClose;
-                changePct = prevClose !== 0 ? (change / prevClose) * 100 : 0;
-            } else {
-                if (priceType === 'lastPrice') {
-                    price = quote.lastPrice || 0;
-                    change = quote.netChange || 0;
-                    changePct = quote.netPercentChange || quote.futurePercentChange || 0;
-                } else {
-                    price = quote.mark || quote.lastPrice || 0;
-                    change = quote.markChange || quote.netChange || 0;
-                    changePct = quote.markPercentChange || quote.futurePercentChange || quote.netPercentChange || 0;
-                }
-            }
-
-            processedData[symbol] = {
-                price: cleanFloat(price),
-                change: cleanFloat(change),
-                changePct: cleanFloat(changePct)
-            };
+            processedData[symbol] = calculateDisplayQuote(typedData, priceType, isOvernight);
         }
 
         return jsonResponse(processedData);
     } catch (error) {
-        console.error('Quote proxy error:', error);
         return jsonResponse({ error: 'Failed to fetch quote' }, 500);
     }
 };
