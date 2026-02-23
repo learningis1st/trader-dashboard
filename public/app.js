@@ -2,7 +2,7 @@ import { state } from './js/state.js';
 import { loadLayout, saveLayout } from './js/layoutStore.js';
 import { loadSettings, saveSettings } from './js/settingsStore.js';
 import { setupSettingsModal } from './js/settingsUI.js';
-import { setupMagicInput } from './js/widgets.js';
+import { setupMagicInput } from './js/inputUI.js';
 import { fetchData, startRefreshInterval } from './js/data.js';
 import { LIMITS } from './js/config.js';
 import './js/ui.js';
