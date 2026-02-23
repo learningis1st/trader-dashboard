@@ -29,7 +29,7 @@ export function setupMagicInput() {
         if (e.key === 'Enter') {
             const symbol = input.value.trim().toUpperCase();
             if (symbol) {
-                addSymbolWidget(symbol);
+                addSymbolAction(symbol);
                 closeModal();
                 fetchData();
             }
