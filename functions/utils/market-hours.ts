@@ -1,6 +1,6 @@
 import { Env } from "./env";
 
-const MARKET_HOURS_API = 'https://finance.learningis1.st/markets?markets=equity,option,bond';
+const MARKET_HOURS_API = 'https://finance.learningis1.st/markets?markets=option,bond';
 
 export const getTodayET = () =>
     new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
@@ -33,54 +33,79 @@ export async function fetchMarketSchedule(env: Env) {
     return { date: today, data: marketData };
 }
 
-export function evaluateOvernightStatus(cacheData: any, targetDate: Date = new Date()): Record<string, boolean> {
-    const status: Record<string, boolean> = { EQUITY: false, OPTION: false, BOND: false };
-    if (!cacheData) return status;
+function isApiMarketOpen(apiData: any, marketKey: string, nowTime: number): boolean {
+    if (!apiData || !apiData[marketKey]) return false;
 
-    const formatter = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', hour12: false });
-    const parts = formatter.formatToParts(targetDate);
-    const getPart = (type: string) => parts.find(p => p.type === type)?.value;
+    return Object.values(apiData[marketKey]).some((product: any) => {
+        if (!product.isOpen || !product.sessionHours) return false;
 
-    const weekdayStr = getPart('weekday');
-    const hour = parseInt(getPart('hour') || '0', 10);
-    const days: Record<string, number> = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
-    const day = days[weekdayStr as string];
+        const allSessions = [
+            ...(product.sessionHours.preMarket || []),
+            ...(product.sessionHours.regularMarket || []),
+            ...(product.sessionHours.postMarket || [])
+        ];
 
-    // Weekend Gap Check
-    if (day === 6 || (day === 5 && hour >= 20) || (day === 0 && hour < 20)) return status;
-
-    const checkMarket = (marketKey: string) => {
-        if (!cacheData[marketKey]) return false;
-        const nowTime = targetDate.getTime();
-
-        const inSession = Object.values(cacheData[marketKey]).some((product: any) => {
-            if (!product.isOpen || !product.sessionHours) return false;
-            const allSessions = [
-                ...(product.sessionHours.preMarket || []),
-                ...(product.sessionHours.regularMarket || []),
-                ...(product.sessionHours.postMarket || [])
-            ];
-            return allSessions.some(session => {
-                const start = new Date(session.start).getTime();
-                const end = new Date(session.end).getTime();
-                return nowTime >= start && nowTime <= end;
-            });
+        return allSessions.some((session: any) => {
+            const start = new Date(session.start).getTime();
+            const end = new Date(session.end).getTime();
+            return nowTime >= start && nowTime <= end;
         });
-        return !inSession;
-    };
-
-    status.EQUITY = checkMarket('equity');
-    status.OPTION = checkMarket('option');
-    status.BOND = checkMarket('bond');
-
-    return status;
+    });
 }
 
-export async function getOvernightStatus(env: Env): Promise<Record<string, boolean>> {
+function isEquitiesOpen(day: number, hour: number): boolean {
+    // Trades 24/5 (close 8pm ET Friday, reopen 8pm ET Sunday)
+    if (day >= 1 && day <= 4) return true; // Mon-Thu
+    if (day === 5 && hour < 20) return true; // Fri before 8 PM
+    if (day === 0 && hour >= 20) return true; // Sun from 8 PM onwards
+    return false;
+}
+
+function isFutureOpen(day: number, hour: number): boolean {
+    // Trades from Sunday at 6:00 pm ET to Friday at 5:00 pm ET
+    if (day >= 1 && day <= 4) return true;
+    if (day === 5 && hour < 17) return true; // Fri before 5 PM
+    if (day === 0 && hour >= 18) return true; // Sun from 6 PM onwards
+    return false;
+}
+
+function isForexOpen(day: number, hour: number): boolean {
+    // Trades from 5:00 p.m. ET on Sunday and closing at 5:00 p.m. ET on Friday
+    if (day >= 1 && day <= 4) return true;
+    if (day === 5 && hour < 17) return true; // Fri before 5 PM
+    if (day === 0 && hour >= 17) return true; // Sun from 5 PM onwards
+    return false;
+}
+
+export async function getMarketStatus(env: Env, targetDate: Date = new Date()): Promise<Record<string, boolean>> {
+    let apiData = null;
     try {
         const scheduleResult = await fetchMarketSchedule(env);
-        return evaluateOvernightStatus(scheduleResult.data);
+        apiData = scheduleResult.data;
     } catch (e) {
-        return { EQUITY: false, OPTION: false, BOND: false };
+        console.error('Failed to fetch market schedule:', e);
     }
+
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        weekday: 'short',
+        hour: 'numeric',
+        hourCycle: 'h23'
+    });
+
+    const parts = formatter.formatToParts(targetDate);
+    const dayStr = parts.find(p => p.type === 'weekday')?.value || 'Sun';
+    const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0', 10);
+
+    const days: Record<string, number> = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
+    const day = days[dayStr] ?? 0;
+    const nowTime = targetDate.getTime();
+
+    return {
+        EQUITY: isEquitiesOpen(day, hour),
+        FUTURE: isFutureOpen(day, hour),
+        FOREX: isForexOpen(day, hour),
+        OPTION: isApiMarketOpen(apiData, 'option', nowTime),
+        BOND: isApiMarketOpen(apiData, 'bond', nowTime)
+    };
 }

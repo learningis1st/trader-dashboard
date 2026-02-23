@@ -1,6 +1,6 @@
 import { Env } from "../utils/env";
 import { jsonResponse } from "../utils/response";
-import { getOvernightStatus } from "../utils/market-hours";
+import { getMarketStatus } from "../utils/market-hours";
 import { calculateDisplayQuote } from "../utils/pricing";
 
 const QUOTE_API = 'https://finance.learningis1.st/quote';
@@ -23,7 +23,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         return jsonResponse({ error: 'Missing symbols' }, 400);
     }
 
-    const overnightStatus = await getOvernightStatus(context.env);
+    const marketStatus = await getMarketStatus(context.env);
 
     const url = new URL(QUOTE_API);
     url.searchParams.set('symbols', symbolsArray.join(','));
@@ -43,7 +43,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             }
 
             const typedData = data as any;
-            const isOvernight = overnightStatus[typedData.assetMainType] || false;
+
+            const isMarketOpen = marketStatus[typedData.assetMainType] || false;
+            const isOvernight = !isMarketOpen;
 
             processedData[symbol] = calculateDisplayQuote(typedData, priceType, isOvernight);
         }
