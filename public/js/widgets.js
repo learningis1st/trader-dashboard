@@ -1,6 +1,7 @@
 import { state, saveState } from './state.js';
 import { escapeHtml } from './utils.js';
 import { fetchData } from './data.js';
+import { updateEmptyHint } from './ui.js';
 
 export function setupMagicInput() {
     const modal = document.getElementById('magic-modal');
@@ -87,8 +88,7 @@ export function addSymbolWidget(symbol, options = null) {
     });
 
     saveState();
-
-    window.dispatchEvent(new CustomEvent('symbols-changed'));
+    updateEmptyHint();
 }
 
 export function removeSymbol(symbol) {
@@ -101,8 +101,7 @@ export function removeSymbol(symbol) {
     delete state.assetTypeCache[symbol];
 
     saveState();
-
-    window.dispatchEvent(new CustomEvent('symbols-changed'));
+    updateEmptyHint();
 }
 
 export function openTradingView(symbol) {

@@ -74,12 +74,3 @@ function applyColors({ price, chg, pct }, change) {
         pct.classList.add(COLORS.muted);
     }
 }
-
-// --- EVENT LISTENERS ---
-window.addEventListener('quotes-updated', (e) => {
-    renderQuotes(e.detail);
-});
-
-window.addEventListener('symbols-changed', () => {
-    updateEmptyHint();
-});

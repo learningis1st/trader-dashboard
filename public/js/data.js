@@ -1,4 +1,5 @@
 import { state } from './state.js';
+import { renderQuotes, updateEmptyHint } from './ui.js';
 
 export function startRefreshInterval() {
     clearInterval(state.refreshInterval);
@@ -6,7 +7,7 @@ export function startRefreshInterval() {
 }
 
 export async function fetchData() {
-    window.dispatchEvent(new CustomEvent('symbols-changed'));
+    updateEmptyHint();
 
     if (state.symbolList.length === 0 || state.isFetching) return;
 
@@ -34,8 +35,7 @@ export async function fetchData() {
             }
 
             Object.assign(state.lastQuotes, data);
-
-            window.dispatchEvent(new CustomEvent('quotes-updated', { detail: data }));
+            renderQuotes(data);
         }
     } catch (error) {
         console.error('Fetch failed:', error);
@@ -46,7 +46,7 @@ export async function fetchData() {
 
 export function updateUIFromCache() {
     if (Object.keys(state.lastQuotes).length > 0) {
-        window.dispatchEvent(new CustomEvent('quotes-updated', { detail: state.lastQuotes }));
+        renderQuotes(state.lastQuotes);
     }
 }
 
