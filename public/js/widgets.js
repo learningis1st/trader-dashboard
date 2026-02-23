@@ -2,6 +2,18 @@ import { state, saveState } from './state.js';
 import { escapeHtml } from './utils.js';
 import { fetchData } from './data.js';
 
+export function applyLayout(layout) {
+    state.isRestoring = true;
+    state.grid.batchUpdate();
+    state.grid.removeAll();
+    state.symbolList = [];
+
+    layout.forEach(item => item.symbol && addSymbolWidget(item.symbol, item));
+
+    state.grid.commit();
+    state.isRestoring = false;
+}
+
 export function setupMagicInput() {
     const modal = document.getElementById('magic-modal');
     const input = document.getElementById('symbol-input');

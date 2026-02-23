@@ -21,7 +21,7 @@ export const state = {
 };
 
 import { unescapeHtml } from './utils.js';
-import { addSymbolWidget } from './widgets.js';
+import { applyLayout } from './widgets.js';
 
 const STORAGE_KEY = 'trader_dashboard_layout';
 const DEBOUNCE_LOCAL = 100;
@@ -85,16 +85,4 @@ export async function loadState() {
             console.error('Local load failed:', e);
         }
     }
-}
-
-function applyLayout(layout) {
-    state.isRestoring = true;
-    state.grid.batchUpdate();
-    state.grid.removeAll();
-    state.symbolList = [];
-
-    layout.forEach(item => item.symbol && addSymbolWidget(item.symbol, item));
-
-    state.grid.commit();
-    state.isRestoring = false;
 }
