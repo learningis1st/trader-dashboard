@@ -1,9 +1,5 @@
 import { Env } from "../utils/env";
-import { verifyYubicoOTP } from "../utils/yubico";
-import { createSignedSessionValue, SESSION_MAX_AGE_SECONDS } from "../utils/session";
-
-const YUBIKEY_ID_LENGTH = 12;
-const YUBIKEY_OTP_LENGTH = 44;
+import { extractYubikeyId, verifyOtp, checkYubikeyExists, registerYubikey, createSessionResponse } from "../utils/auth-service";
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
     const formData = await context.request.formData();
@@ -16,41 +12,26 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     };
 
     if (!otp) return redirectWithError("No OTP provided");
-    if (otp.length !== YUBIKEY_OTP_LENGTH) return redirectWithError("Invalid OTP length");
 
-    const yubikeyId = otp.substring(0, YUBIKEY_ID_LENGTH).toLowerCase();
+    const yubikeyId = extractYubikeyId(otp);
+    if (!yubikeyId) return redirectWithError("Invalid OTP length");
 
     try {
-        const { YUBICO_CLIENT_ID, YUBICO_SECRET_KEY, SESSION_SECRET } = context.env;
-        if (!YUBICO_CLIENT_ID || !YUBICO_SECRET_KEY || !SESSION_SECRET) {
-            return redirectWithError("Server configuration error");
-        }
-
-        const isValid = await verifyYubicoOTP(otp, YUBICO_CLIENT_ID, YUBICO_SECRET_KEY);
+        const isValid = await verifyOtp(context.env, otp);
         if (!isValid) return redirectWithError("Invalid OTP");
 
         // Safety check to ensure it wasn't registered between loading the page and posting
-        const existingKey = await context.env.DB.prepare(
-            "SELECT yubikey_id FROM yubikeys WHERE yubikey_id = ?"
-        ).bind(yubikeyId).first();
+        const exists = await checkYubikeyExists(context.env.DB, yubikeyId);
+        if (exists) return redirectWithError("This YubiKey is already registered");
 
-        if (existingKey) return redirectWithError("This YubiKey is already registered");
+        await registerYubikey(context.env.DB, yubikeyId);
 
-        await context.env.DB.prepare(
-            "INSERT INTO yubikeys (yubikey_id) VALUES (?)"
-        ).bind(yubikeyId).run();
-
-        const sessionCookieValue = await createSignedSessionValue(SESSION_SECRET, yubikeyId);
-
-        return new Response(null, {
-            status: 303,
-            headers: {
-                "Location": "/",
-                "Set-Cookie": `auth_session=${sessionCookieValue}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_MAX_AGE_SECONDS}`
-            }
-        });
-    } catch (error) {
+        return await createSessionResponse(context.env, yubikeyId);
+    } catch (error: any) {
         console.error("Signup System Error:", error);
-        return redirectWithError("Registration Service Unavailable. Try again.");
+        const errorMsg = error.message.includes("configuration")
+            ? error.message
+            : "Registration Service Unavailable. Try again.";
+        return redirectWithError(errorMsg);
     }
 };
