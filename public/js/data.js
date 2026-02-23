@@ -32,7 +32,7 @@ export async function fetchData() {
                         if (priceEl) {
                             priceEl.innerText = 'ERR';
                             priceEl.classList.remove('text-gray-300', 'text-[#4ade80]', 'text-[#f87171]');
-                            priceEl.classList.add('text-[#fbbf24]'); // Amber for errors
+                            priceEl.classList.add('text-[#fbbf24]');
                         }
                         if (chgEl) chgEl.innerText = 'INVALID';
                         if (pctEl) pctEl.innerText = 'SYMBOL';
@@ -70,31 +70,13 @@ function processQuotes(data) {
     const processed = {};
 
     for (const [symbol, info] of Object.entries(data)) {
-        let price, change, changePct;
+        if (!info || !info.regular) continue;
 
-        // Calculate overnight extended prices manually
-        if (overnight && info.assetMainType === 'EQUITY' && info.extended && info.regular) {
-            price = info.extended.mark || info.extended.lastPrice || 0;
-            const prevClose = info.regular.regularMarketLastPrice || price;
-
-            change = price - prevClose;
-            changePct = prevClose !== 0 ? (change / prevClose) * 100 : 0;
+        if (overnight && info.assetMainType === 'EQUITY' && info.extended) {
+            processed[symbol] = info.extended;
         } else {
-            const quote = info.quote || {};
-            if (!quote.lastPrice && !quote.mark) continue;
-
-            if (state.PRICE_TYPE === 'mark') {
-                price = quote.mark || quote.lastPrice || 0;
-                change = quote.markChange || quote.netChange || 0;
-                changePct = quote.markPercentChange || quote.futurePercentChange || quote.netPercentChange || 0;
-            } else {
-                price = quote.lastPrice || 0;
-                change = quote.netChange || 0;
-                changePct = quote.netPercentChange || quote.futurePercentChange || 0;
-            }
+            processed[symbol] = info.regular[state.PRICE_TYPE];
         }
-
-        processed[symbol] = { price, change, changePct };
     }
 
     return processed;

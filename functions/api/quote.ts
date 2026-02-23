@@ -35,29 +35,36 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             const extended = typedData.extended;
             const regular = typedData.regular;
 
-            filteredData[symbol] = {
+            const processed: Record<string, any> = {
                 assetMainType: typedData.assetMainType,
-                quote: {
-                    mark: quote.mark,
-                    lastPrice: quote.lastPrice,
-                    markChange: quote.markChange,
-                    netChange: quote.netChange,
-                    markPercentChange: quote.markPercentChange,
-                    netPercentChange: quote.netPercentChange,
-                    futurePercentChange: quote.futurePercentChange
-                },
-                ...(extended ? {
-                    extended: {
-                        mark: extended.mark,
-                        lastPrice: extended.lastPrice
+                regular: {
+                    mark: {
+                        price: quote.mark || quote.lastPrice || 0,
+                        change: quote.markChange || quote.netChange || 0,
+                        changePct: quote.markPercentChange || quote.futurePercentChange || quote.netPercentChange || 0
+                    },
+                    lastPrice: {
+                        price: quote.lastPrice || 0,
+                        change: quote.netChange || 0,
+                        changePct: quote.netPercentChange || quote.futurePercentChange || 0
                     }
-                } : {}),
-                ...(regular ? {
-                    regular: {
-                        regularMarketLastPrice: regular.regularMarketLastPrice
-                    }
-                } : {})
+                }
             };
+
+            if (extended && regular) {
+                const extPrice = extended.mark || extended.lastPrice || 0;
+                const prevClose = regular.regularMarketLastPrice || extPrice;
+                const extChange = extPrice - prevClose;
+                const extChangePct = prevClose !== 0 ? (extChange / prevClose) * 100 : 0;
+
+                processed.extended = {
+                    price: extPrice,
+                    change: extChange,
+                    changePct: extChangePct
+                };
+            }
+
+            filteredData[symbol] = processed;
         }
 
         return jsonResponse(filteredData);
