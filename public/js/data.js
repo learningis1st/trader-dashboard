@@ -3,7 +3,7 @@ import {
     setRefreshInterval,
     setIsFetching,
     setLastQuotes
-} from './state.js';
+} from './store/state.js';
 
 export function startRefreshInterval() {
     clearInterval(getState().refreshInterval);

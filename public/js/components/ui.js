@@ -1,5 +1,5 @@
-import { state } from './state.js';
-import { getAppropriateDecimals, formatPrice, formatNumber } from './utils.js';
+import { state } from '../store/state.js';
+import { getAppropriateDecimals, formatPrice, formatNumber } from '../utils.js';
 
 const COLORS = {
     positive: 'text-[#4ade80]',

@@ -1,8 +1,8 @@
-import { getState, addSymbol, removeSymbol as removeSymbolFromState, setIsRestoring, clearSymbolList } from './state.js';
-import { saveLayout } from './layout-store.js';
+import { getState, addSymbol, removeSymbol as removeSymbolFromState, setIsRestoring, clearSymbolList } from './store/state.js';
+import { saveLayout } from './store/layout-store.js';
 import { fetchData } from './data.js';
-import { addWidgetToGrid, removeWidgetFromGrid, getWidgetNode, clearGrid, batchUpdateGrid, commitGrid } from './widgets.js';
-import { createTickerInput } from './ui.js';
+import { addWidgetToGrid, removeWidgetFromGrid, getWidgetNode, clearGrid, batchUpdateGrid, commitGrid } from './components/widgets.js';
+import { createTickerInput } from './components/ui.js';
 
 export function applyLayoutAction(layout) {
     setIsRestoring(true);

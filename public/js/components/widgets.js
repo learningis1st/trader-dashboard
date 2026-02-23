@@ -1,5 +1,5 @@
-import { getState } from './state.js';
-import { escapeHtml } from './utils.js';
+import { getState } from '../store/state.js';
+import { escapeHtml } from '../utils.js';
 import { createWidgetHtml } from './widget-template.js';
 
 export function addWidgetToGrid(symbol, options = null) {

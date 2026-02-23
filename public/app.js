@@ -1,12 +1,12 @@
-import { state } from './js/state.js';
-import { loadLayout, saveLayout } from './js/layout-store.js';
-import { loadSettings, saveSettings } from './js/settings-store.js';
-import { setupSettingsModal } from './js/settings-ui.js';
-import { setupMagicInput } from './js/input-ui.js';
+import { state } from './js/store/state.js';
+import { loadLayout, saveLayout } from './js/store/layout-store.js';
+import { loadSettings, saveSettings } from './js/store/settings-store.js';
+import { setupSettingsModal } from './js/components/settings-ui.js';
+import { setupMagicInput } from './js/components/input-ui.js';
 import { fetchData, startRefreshInterval } from './js/data.js';
 import { LIMITS } from './js/config.js';
 import './js/actions.js';
-import './js/ui.js';
+import './js/components/ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     state.grid = GridStack.init({

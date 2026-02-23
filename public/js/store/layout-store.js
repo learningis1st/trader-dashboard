@@ -1,6 +1,6 @@
 import { state } from './state.js';
-import { unescapeHtml } from './utils.js';
-import { applyLayoutAction } from './actions.js';
+import { unescapeHtml } from '../utils.js';
+import { applyLayoutAction } from '../actions.js';
 
 const STORAGE_KEY = 'trader_dashboard_layout';
 const DEBOUNCE_LOCAL = 100;

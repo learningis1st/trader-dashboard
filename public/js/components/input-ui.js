@@ -1,5 +1,5 @@
-import { addSymbolAction } from './actions.js';
-import { fetchData } from './data.js';
+import { addSymbolAction } from '../actions.js';
+import { fetchData } from '../data.js';
 
 export function setupMagicInput() {
     const modal = document.getElementById('magic-modal');

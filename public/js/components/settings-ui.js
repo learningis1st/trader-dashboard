@@ -1,4 +1,4 @@
-import { LIMITS } from './config.js';
+import { LIMITS } from '../config.js';
 import {
     getState,
     setRefreshRate,
@@ -6,9 +6,9 @@ import {
     setDefaultWidgetHeight,
     setDecimalPrecision,
     setPriceType
-} from './state.js';
-import { startRefreshInterval, fetchData, updateUIFromCache } from './data.js';
-import { saveSettings, clamp } from './settings-store.js';
+} from '../store/state.js';
+import { startRefreshInterval, fetchData, updateUIFromCache } from '../data.js';
+import { saveSettings, clamp } from '../store/settings-store.js';
 
 function updateSliderTrack(slider) {
     const percent = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;

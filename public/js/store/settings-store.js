@@ -1,4 +1,4 @@
-import { LIMITS } from './config.js';
+import { LIMITS } from '../config.js';
 import {
     getState,
     setRefreshRate,
