@@ -32,7 +32,8 @@ export function setupSettingsModal() {
     };
 
     const getPriceType = () => document.querySelector('input[name="priceType"]:checked')?.value || 'mark';
-    const setPriceType = (val) => {
+
+    const setPriceTypeRadio = (val) => {
         const radio = document.querySelector(`input[name="priceType"][value="${val}"]`);
         if (radio) radio.checked = true;
     };
@@ -58,7 +59,8 @@ export function setupSettingsModal() {
         inputs.width.value = getState().DEFAULT_WIDGET_WIDTH;
         inputs.height.value = getState().DEFAULT_WIDGET_HEIGHT;
         inputs.precision.value = getState().DECIMAL_PRECISION;
-        setPriceType(getState().PRICE_TYPE || 'mark');
+
+        setPriceTypeRadio(getState().PRICE_TYPE || 'mark');
 
         Object.values(updaters).forEach(fn => fn());
         modal.classList.remove('hidden');
