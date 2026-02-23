@@ -29,10 +29,12 @@ export async function fetchData() {
                         const chgEl = document.getElementById(`chg-${sym}`);
                         const pctEl = document.getElementById(`pct-${sym}`);
 
+                        const errorColor = 'text-[#fbbf24]';
+
                         if (priceEl) {
                             priceEl.innerText = 'ERR';
-                            priceEl.classList.remove('text-gray-300');
-                            priceEl.classList.add('text-[#f87171]');
+                            priceEl.classList.remove('text-gray-300', 'text-[#4ade80]', 'text-[#f87171]');
+                            priceEl.classList.add(errorColor);
                         }
                         if (chgEl) chgEl.innerText = 'INVALID';
                         if (pctEl) pctEl.innerText = 'SYMBOL';
