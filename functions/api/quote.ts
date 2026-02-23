@@ -61,6 +61,7 @@ async function isEquityOvernight(env: Env): Promise<boolean> {
 
     return !inSession;
 }
+const cleanFloat = (num: number) => Number(num.toFixed(6));
 
 export const onRequest: PagesFunction<Env> = async (context) => {
     const userId = context.data.yubikeyId as string;
@@ -117,7 +118,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 }
             }
 
-            processedData[symbol] = { price, change, changePct };
+            processedData[symbol] = {
+                price: cleanFloat(price),
+                change: cleanFloat(change),
+                changePct: cleanFloat(changePct)
+            };
         }
 
         return jsonResponse(processedData);
