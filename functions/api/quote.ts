@@ -1,6 +1,6 @@
 import { Env } from "../utils/env";
 import { jsonResponse } from "../utils/response";
-import { getOvernightStatus } from "../utils/market-status";
+import { getOvernightStatus } from "../utils/overnight-status";
 import { calculateDisplayQuote } from "../utils/pricing";
 
 const QUOTE_API = 'https://finance.learningis1.st/quote';
