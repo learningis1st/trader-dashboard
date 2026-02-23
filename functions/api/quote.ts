@@ -1,9 +1,8 @@
 import { Env } from "../utils/env";
 import { jsonResponse } from "../utils/response";
-import { isEquityOvernight } from "../utils/market-status"; // <-- import moved function
+import { getOvernightStatus } from "../utils/market-status";
 
 const QUOTE_API = 'https://finance.learningis1.st/quote';
-const MARKET_HOURS_API = 'https://finance.learningis1.st/markets?markets=equity,option,bond';
 
 const cleanFloat = (num: number) => Number(num.toFixed(6));
 
@@ -25,7 +24,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         return jsonResponse({ error: 'Missing symbols' }, 400);
     }
 
-    const isOvernight = await isEquityOvernight(context.env);
+    const overnightStatus = await getOvernightStatus(context.env);
 
     const url = new URL(QUOTE_API);
     url.searchParams.set('symbols', symbolsArray.join(','));
@@ -51,7 +50,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
             let price = 0, change = 0, changePct = 0;
 
-            const useExtended = isOvernight && typedData.assetMainType === 'EQUITY' && extended && regular;
+            const assetType = typedData.assetMainType;
+            const isOvernight = overnightStatus[assetType] || false;
+            const useExtended = isOvernight && extended && regular;
 
             if (useExtended) {
                 price = extended.mark || extended.lastPrice || 0;

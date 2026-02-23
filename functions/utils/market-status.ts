@@ -4,7 +4,7 @@ const MARKET_HOURS_API = 'https://finance.learningis1.st/markets?markets=equity,
 
 const getTodayET = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 
-export async function isEquityOvernight(env: Env): Promise<boolean> {
+export async function getOvernightStatus(env: Env): Promise<Record<string, boolean>> {
     const today = getTodayET();
     let cacheData: any = null;
 
@@ -21,10 +21,16 @@ export async function isEquityOvernight(env: Env): Promise<boolean> {
             }
         }
     } catch (e) {
-        return false;
+        return { EQUITY: false, OPTION: false, BOND: false };
     }
 
-    if (!cacheData || !cacheData.equity) return false;
+    const status: Record<string, boolean> = {
+        EQUITY: false,
+        OPTION: false,
+        BOND: false
+    };
+
+    if (!cacheData) return status;
 
     const now = new Date();
     const formatter = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', hour12: false });
@@ -38,24 +44,36 @@ export async function isEquityOvernight(env: Env): Promise<boolean> {
     const day = days[weekdayStr as string];
 
     // No extended hours quoted during the weekend gap
-    if (day === 6) return false;
-    if (day === 5 && hour >= 20) return false;
-    if (day === 0 && hour < 20) return false;
+    if (day === 6) return status;
+    if (day === 5 && hour >= 20) return status;
+    if (day === 0 && hour < 20) return status;
 
-    const inSession = Object.values(cacheData.equity).some((product: any) => {
-        if (!product.isOpen || !product.sessionHours) return false;
-        const nowTime = Date.now();
-        const allSessions = [
-            ...(product.sessionHours.preMarket || []),
-            ...(product.sessionHours.regularMarket || []),
-            ...(product.sessionHours.postMarket || [])
-        ];
-        return allSessions.some(session => {
-            const start = new Date(session.start).getTime();
-            const end = new Date(session.end).getTime();
-            return nowTime >= start && nowTime <= end;
+    const checkMarket = (marketKey: string) => {
+        if (!cacheData[marketKey]) return false;
+
+        // This implicitly covers the widest time frame for all products in the category
+        // (e.g. checking both EQO and IND, staying "open" until the latest session ends).
+        const inSession = Object.values(cacheData[marketKey]).some((product: any) => {
+            if (!product.isOpen || !product.sessionHours) return false;
+            const nowTime = Date.now();
+            const allSessions = [
+                ...(product.sessionHours.preMarket || []),
+                ...(product.sessionHours.regularMarket || []),
+                ...(product.sessionHours.postMarket || [])
+            ];
+            return allSessions.some(session => {
+                const start = new Date(session.start).getTime();
+                const end = new Date(session.end).getTime();
+                return nowTime >= start && nowTime <= end;
+            });
         });
-    });
 
-    return !inSession;
+        return !inSession;
+    };
+
+    status.EQUITY = checkMarket('equity');
+    status.OPTION = checkMarket('option');
+    status.BOND = checkMarket('bond');
+
+    return status;
 }
