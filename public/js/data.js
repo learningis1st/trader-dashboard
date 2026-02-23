@@ -51,8 +51,16 @@ export function updateUIFromCache() {
 }
 
 async function fetchQuote(symbols) {
-    const params = symbols.map(encodeURIComponent).join(',');
-    const response = await fetch(`/api/quote?symbols=${params}&priceType=${state.PRICE_TYPE}`);
+    const response = await fetch(`/api/quote`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            symbols: symbols,
+            priceType: state.PRICE_TYPE
+        })
+    });
 
     if (response.redirected && response.url.includes('/login')) {
         window.location.reload();
