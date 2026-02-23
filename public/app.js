@@ -1,8 +1,8 @@
 import { state } from './js/state.js';
-import { loadLayout, saveLayout } from './js/layoutStore.js';
-import { loadSettings, saveSettings } from './js/settingsStore.js';
-import { setupSettingsModal } from './js/settingsUI.js';
-import { setupMagicInput } from './js/inputUI.js';
+import { loadLayout, saveLayout } from './js/layout-store.js';
+import { loadSettings, saveSettings } from './js/settings-store.js';
+import { setupSettingsModal } from './js/settings-ui.js';
+import { setupMagicInput } from './js/input-ui.js';
 import { fetchData, startRefreshInterval } from './js/data.js';
 import { LIMITS } from './js/config.js';
 import './js/actions.js';

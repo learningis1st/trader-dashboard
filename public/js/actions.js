@@ -1,5 +1,5 @@
 import { getState, addSymbol, removeSymbol as removeSymbolFromState, setIsRestoring, clearSymbolList } from './state.js';
-import { saveLayout } from './layoutStore.js';
+import { saveLayout } from './layout-store.js';
 import { fetchData } from './data.js';
 import { addWidgetToGrid, removeWidgetFromGrid, getWidgetNode, clearGrid, batchUpdateGrid, commitGrid } from './widgets.js';
 import { createTickerInput } from './ui.js';

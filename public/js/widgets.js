@@ -1,6 +1,6 @@
 import { getState } from './state.js';
 import { escapeHtml } from './utils.js';
-import { createWidgetHtml } from './widgetTemplate.js';
+import { createWidgetHtml } from './widget-template.js';
 
 export function addWidgetToGrid(symbol, options = null) {
     const safeSymbol = escapeHtml(symbol);

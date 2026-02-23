@@ -8,7 +8,7 @@ import {
     setPriceType
 } from './state.js';
 import { startRefreshInterval, fetchData, updateUIFromCache } from './data.js';
-import { saveSettings, clamp } from './settingsStore.js';
+import { saveSettings, clamp } from './settings-store.js';
 
 function updateSliderTrack(slider) {
     const percent = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
