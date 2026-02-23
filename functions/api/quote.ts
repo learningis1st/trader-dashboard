@@ -49,9 +49,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 ...(extended ? {
                     extended: {
                         mark: extended.mark,
-                        lastPrice: extended.lastPrice,
-                        askPrice: extended.askPrice,
-                        bidPrice: extended.bidPrice
+                        lastPrice: extended.lastPrice
                     }
                 } : {}),
                 ...(regular ? {
