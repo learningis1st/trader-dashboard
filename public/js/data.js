@@ -23,12 +23,12 @@ export async function fetchData() {
                     const pctEl = document.getElementById(`pct-${sym}`);
 
                     if (priceEl) {
-                        priceEl.innerText = 'ERR';
-                        priceEl.classList.remove('text-gray-300', 'text-[#4ade80]', 'text-[#f87171]');
-                        priceEl.classList.add('text-[#fbbf24]');
+                        priceEl.innerText = '---';
+                        priceEl.classList.remove('text-[#4ade80]', 'text-[#f87171]', 'text-[#fbbf24]');
+                        priceEl.classList.add('text-gray-300');
                     }
-                    if (chgEl) chgEl.innerText = 'INVALID';
-                    if (pctEl) pctEl.innerText = 'SYMBOL';
+                    if (chgEl) chgEl.innerText = '--';
+                    if (pctEl) pctEl.innerText = '--%';
                 });
                 delete data.errors;
             }
