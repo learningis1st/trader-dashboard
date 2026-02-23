@@ -17,25 +17,14 @@ export async function fetchData() {
 
         if (data) {
             if (data.errors && data.errors.invalidSymbols) {
-                data.errors.invalidSymbols.forEach(sym => {
-                    const priceEl = document.getElementById(`price-${sym}`);
-                    const chgEl = document.getElementById(`chg-${sym}`);
-                    const pctEl = document.getElementById(`pct-${sym}`);
-
-                    if (priceEl) {
-                        priceEl.innerText = '---';
-                        priceEl.classList.remove('text-[#4ade80]', 'text-[#f87171]', 'text-[#fbbf24]');
-                        priceEl.classList.add('text-gray-300');
-                    }
-                    if (chgEl) chgEl.innerText = '--';
-                    if (pctEl) pctEl.innerText = '--%';
-                });
+                window.dispatchEvent(new CustomEvent('quotes-error', {
+                    detail: data.errors.invalidSymbols
+                }));
                 delete data.errors;
             }
 
             Object.assign(state.lastQuotes, data);
 
-            // Dispatch event instead of calling UI directly
             window.dispatchEvent(new CustomEvent('quotes-updated', { detail: data }));
         }
     } catch (error) {

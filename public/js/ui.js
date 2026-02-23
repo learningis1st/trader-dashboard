@@ -33,6 +33,22 @@ export function renderQuotes(processedData) {
     }
 }
 
+export function handleInvalidSymbols(invalidSymbols) {
+    invalidSymbols.forEach(sym => {
+        const priceEl = document.getElementById(`price-${sym}`);
+        const chgEl = document.getElementById(`chg-${sym}`);
+        const pctEl = document.getElementById(`pct-${sym}`);
+
+        if (priceEl) {
+            priceEl.innerText = '---';
+            priceEl.classList.remove(...ALL_COLORS, 'text-[#fbbf24]');
+            priceEl.classList.add(COLORS.neutral);
+        }
+        if (chgEl) chgEl.innerText = '--';
+        if (pctEl) pctEl.innerText = '--%';
+    });
+}
+
 function handlePriceFlash(el, symbol, newPrice) {
     const oldPrice = state.previousPrices[symbol];
     state.previousPrices[symbol] = newPrice;
@@ -76,4 +92,5 @@ function applyColors({ price, chg, pct }, change) {
 }
 
 window.addEventListener('quotes-updated', (e) => renderQuotes(e.detail));
+window.addEventListener('quotes-error', (e) => handleInvalidSymbols(e.detail));
 window.addEventListener('update-empty-hint', () => updateEmptyHint());
