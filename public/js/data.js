@@ -1,5 +1,4 @@
 import { state } from './state.js';
-import { getSymbolsToFetch, isEquityOvernight } from './market.js';
 import { renderQuotes, updateEmptyHint } from './ui.js';
 
 export function startRefreshInterval() {
@@ -15,48 +14,28 @@ export async function fetchData() {
     state.isFetching = true;
 
     try {
-        const { uncached, cached } = partitionSymbols();
+        const data = await fetchQuote(state.symbolList);
 
-        // Always fetch uncached symbols to learn their asset types
-        if (uncached.length > 0) {
-            const data = await fetchQuote(uncached);
-            if (data) {
-                if (data.errors && data.errors.invalidSymbols) {
-                    data.errors.invalidSymbols.forEach(sym => {
-                        state.assetTypeCache[sym] = 'INVALID';
+        if (data) {
+            if (data.errors && data.errors.invalidSymbols) {
+                data.errors.invalidSymbols.forEach(sym => {
+                    const priceEl = document.getElementById(`price-${sym}`);
+                    const chgEl = document.getElementById(`chg-${sym}`);
+                    const pctEl = document.getElementById(`pct-${sym}`);
 
-                        const priceEl = document.getElementById(`price-${sym}`);
-                        const chgEl = document.getElementById(`chg-${sym}`);
-                        const pctEl = document.getElementById(`pct-${sym}`);
-
-                        if (priceEl) {
-                            priceEl.innerText = 'ERR';
-                            priceEl.classList.remove('text-gray-300', 'text-[#4ade80]', 'text-[#f87171]');
-                            priceEl.classList.add('text-[#fbbf24]');
-                        }
-                        if (chgEl) chgEl.innerText = 'INVALID';
-                        if (pctEl) pctEl.innerText = 'SYMBOL';
-                    });
-                    delete data.errors;
-                }
-
-                cacheAssetTypes(data);
-                Object.assign(state.lastQuotes, data);
-                renderQuotes(processQuotes(data));
+                    if (priceEl) {
+                        priceEl.innerText = 'ERR';
+                        priceEl.classList.remove('text-gray-300', 'text-[#4ade80]', 'text-[#f87171]');
+                        priceEl.classList.add('text-[#fbbf24]');
+                    }
+                    if (chgEl) chgEl.innerText = 'INVALID';
+                    if (pctEl) pctEl.innerText = 'SYMBOL';
+                });
+                delete data.errors;
             }
-        }
 
-        // For cached symbols, only fetch those with open markets
-        const toFetch = getSymbolsToFetch(
-            Object.fromEntries(cached.map(s => [s, state.assetTypeCache[s]]))
-        );
-
-        if (toFetch.length > 0) {
-            const data = await fetchQuote(toFetch);
-            if (data) {
-                Object.assign(state.lastQuotes, data);
-                renderQuotes(processQuotes(data));
-            }
+            Object.assign(state.lastQuotes, data);
+            renderQuotes(data);
         }
     } catch (error) {
         console.error('Fetch failed:', error);
@@ -65,43 +44,15 @@ export async function fetchData() {
     }
 }
 
-function processQuotes(data) {
-    const overnight = isEquityOvernight();
-    const processed = {};
-
-    for (const [symbol, info] of Object.entries(data)) {
-        if (!info || !info.regular) continue;
-
-        if (overnight && info.assetMainType === 'EQUITY' && info.extended) {
-            processed[symbol] = info.extended;
-        } else {
-            processed[symbol] = info.regular[state.PRICE_TYPE];
-        }
-    }
-
-    return processed;
-}
-
 export function updateUIFromCache() {
     if (Object.keys(state.lastQuotes).length > 0) {
-        renderQuotes(processQuotes(state.lastQuotes));
+        renderQuotes(state.lastQuotes);
     }
-}
-
-function partitionSymbols() {
-    const uncached = [];
-    const cached = [];
-
-    for (const s of state.symbolList) {
-        (state.assetTypeCache[s] ? cached : uncached).push(s);
-    }
-
-    return { uncached, cached };
 }
 
 async function fetchQuote(symbols) {
     const params = symbols.map(encodeURIComponent).join(',');
-    const response = await fetch(`/api/quote?symbols=${params}&fields=quote,extended,regular`);
+    const response = await fetch(`/api/quote?symbols=${params}&priceType=${state.PRICE_TYPE}`);
 
     if (response.redirected && response.url.includes('/login')) {
         window.location.reload();
@@ -110,12 +61,4 @@ async function fetchQuote(symbols) {
 
     if (!response.ok) throw new Error('API Error');
     return response.json();
-}
-
-function cacheAssetTypes(data) {
-    for (const [symbol, info] of Object.entries(data)) {
-        if (info.assetMainType) {
-            state.assetTypeCache[symbol] = info.assetMainType;
-        }
-    }
 }
