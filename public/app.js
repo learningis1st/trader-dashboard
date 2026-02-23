@@ -5,6 +5,7 @@ import { setupSettingsModal } from './js/settingsUI.js';
 import { setupMagicInput } from './js/inputUI.js';
 import { fetchData, startRefreshInterval } from './js/data.js';
 import { LIMITS } from './js/config.js';
+import './js/actions.js';
 import './js/ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {

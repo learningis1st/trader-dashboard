@@ -91,6 +91,38 @@ function applyColors({ price, chg, pct }, change) {
     }
 }
 
+export function createTickerInput(oldSymbol, el, onComplete) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = oldSymbol;
+    input.className = 'bg-gray-700 text-white responsive-symbol font-bold w-[50cqmin] px-1 rounded border border-blue-500 uppercase focus:outline-none';
+
+    const parent = el.parentNode;
+
+    const finish = () => {
+        const newSymbol = input.value.trim().toUpperCase();
+        const success = onComplete(newSymbol);
+
+        if (!success) {
+            parent.replaceChild(el, input);
+        }
+    };
+
+    input.addEventListener('blur', finish);
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            input.blur();
+        } else if (e.key === 'Escape') {
+            input.value = oldSymbol;
+            input.blur();
+        }
+    });
+
+    parent.replaceChild(input, el);
+    input.focus();
+    input.select();
+}
+
 window.addEventListener('quotes-updated', (e) => renderQuotes(e.detail));
 window.addEventListener('quotes-error', (e) => handleInvalidSymbols(e.detail));
 window.addEventListener('update-empty-hint', () => updateEmptyHint());

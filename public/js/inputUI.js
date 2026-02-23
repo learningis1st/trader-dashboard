@@ -1,4 +1,4 @@
-import { addSymbolWidget } from './widgets.js';
+import { addSymbolAction } from './actions.js';
 import { fetchData } from './data.js';
 
 export function setupMagicInput() {

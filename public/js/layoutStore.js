@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import { unescapeHtml } from './utils.js';
-import { applyLayout } from './widgets.js';
+import { applyLayoutAction } from './actions.js';
 
 const STORAGE_KEY = 'trader_dashboard_layout';
 const DEBOUNCE_LOCAL = 100;
@@ -48,7 +48,7 @@ export async function loadLayout() {
 
         const layout = await res.json();
         if (Array.isArray(layout)) {
-            applyLayout(layout);
+            applyLayoutAction(layout);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
             return;
         }
@@ -59,7 +59,7 @@ export async function loadLayout() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
         try {
-            applyLayout(JSON.parse(raw));
+            applyLayoutAction(JSON.parse(raw));
         } catch (e) {
             console.error('Local load failed:', e);
         }
