@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { getSymbolsToFetch } from './market.js';
+import { getSymbolsToFetch, isEquityOvernight } from './market.js';
 import { renderQuotes, updateEmptyHint } from './ui.js';
 
 export function startRefreshInterval() {
@@ -41,7 +41,8 @@ export async function fetchData() {
                 }
 
                 cacheAssetTypes(data);
-                renderQuotes(data);
+                Object.assign(state.lastQuotes, data);
+                renderQuotes(processQuotes(data));
             }
         }
 
@@ -52,12 +53,56 @@ export async function fetchData() {
 
         if (toFetch.length > 0) {
             const data = await fetchQuote(toFetch);
-            if (data) renderQuotes(data);
+            if (data) {
+                Object.assign(state.lastQuotes, data);
+                renderQuotes(processQuotes(data));
+            }
         }
     } catch (error) {
         console.error('Fetch failed:', error);
     } finally {
         state.isFetching = false;
+    }
+}
+
+function processQuotes(data) {
+    const overnight = isEquityOvernight();
+    const processed = {};
+
+    for (const [symbol, info] of Object.entries(data)) {
+        let price, change, changePct;
+
+        // Calculate overnight extended prices manually
+        if (overnight && info.assetMainType === 'EQUITY' && info.extended && info.regular) {
+            price = info.extended.mark || info.extended.lastPrice || 0;
+            const prevClose = info.regular.regularMarketLastPrice || price;
+
+            change = price - prevClose;
+            changePct = prevClose !== 0 ? (change / prevClose) * 100 : 0;
+        } else {
+            const quote = info.quote || {};
+            if (!quote.lastPrice && !quote.mark) continue;
+
+            if (state.PRICE_TYPE === 'mark') {
+                price = quote.mark || quote.lastPrice || 0;
+                change = quote.markChange || quote.netChange || 0;
+                changePct = quote.markPercentChange || quote.futurePercentChange || quote.netPercentChange || 0;
+            } else {
+                price = quote.lastPrice || 0;
+                change = quote.netChange || 0;
+                changePct = quote.netPercentChange || quote.futurePercentChange || 0;
+            }
+        }
+
+        processed[symbol] = { price, change, changePct };
+    }
+
+    return processed;
+}
+
+export function updateUIFromCache() {
+    if (Object.keys(state.lastQuotes).length > 0) {
+        renderQuotes(processQuotes(state.lastQuotes));
     }
 }
 

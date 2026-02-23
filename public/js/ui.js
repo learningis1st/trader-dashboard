@@ -1,6 +1,5 @@
 import { state } from './state.js';
 import { getAppropriateDecimals, formatPrice, formatNumber } from './utils.js';
-import { isEquityOvernight } from './market.js';
 
 const COLORS = {
     positive: 'text-[#4ade80]',
@@ -16,18 +15,8 @@ export function updateEmptyHint() {
         ?.classList.toggle('hidden', state.symbolList.length > 0);
 }
 
-export function reRenderUI() {
-    if (Object.keys(state.lastQuotes).length > 0) {
-        renderQuotes(state.lastQuotes);
-    }
-}
-
-export function renderQuotes(data) {
-    const overnight = isEquityOvernight();
-
-    for (const [symbol, info] of Object.entries(data)) {
-        state.lastQuotes[symbol] = info;
-
+export function renderQuotes(processedData) {
+    for (const [symbol, info] of Object.entries(processedData)) {
         const els = {
             price: document.getElementById(`price-${symbol}`),
             chg: document.getElementById(`chg-${symbol}`),
@@ -36,29 +25,7 @@ export function renderQuotes(data) {
 
         if (!els.price || !els.chg || !els.pct) continue;
 
-        let price, change, changePct;
-
-        // Calculate overnight extended prices manually
-        if (overnight && info.assetMainType === 'EQUITY' && info.extended && info.regular) {
-            price = info.extended.mark || info.extended.lastPrice || 0;
-            const prevClose = info.regular.regularMarketLastPrice || price;
-
-            change = price - prevClose;
-            changePct = prevClose !== 0 ? (change / prevClose) * 100 : 0;
-        } else {
-            const quote = info.quote || {};
-            if (!quote.lastPrice && !quote.mark) continue;
-
-            if (state.PRICE_TYPE === 'mark') {
-                price = quote.mark || quote.lastPrice || 0;
-                change = quote.markChange || quote.netChange || 0;
-                changePct = quote.markPercentChange || quote.futurePercentChange || quote.netPercentChange || 0;
-            } else {
-                price = quote.lastPrice || 0;
-                change = quote.netChange || 0;
-                changePct = quote.netPercentChange || quote.futurePercentChange || 0;
-            }
-        }
+        const { price, change, changePct } = info;
 
         handlePriceFlash(els.price, symbol, price);
         updatePriceDisplay(els, price, change, changePct);

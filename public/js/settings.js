@@ -1,7 +1,6 @@
 import { LIMITS } from './config.js';
 import { state } from './state.js';
-import { startRefreshInterval, fetchData } from './data.js';
-import { reRenderUI } from './ui.js';
+import { startRefreshInterval, fetchData, updateUIFromCache } from './data.js';
 
 const STORAGE_KEY = 'trader_dashboard_settings';
 
@@ -76,7 +75,7 @@ export function setupSettingsModal() {
 
         saveSettings();
         startRefreshInterval();
-        reRenderUI();
+        updateUIFromCache();
         fetchData();
         closeModal();
     };
