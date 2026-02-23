@@ -3,6 +3,7 @@ import { loadSettings, setupSettingsModal, saveSettings } from './js/settings.js
 import { setupMagicInput } from './js/widgets.js';
 import { fetchData, startRefreshInterval } from './js/data.js';
 import { LIMITS } from './js/config.js';
+import './js/ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     state.grid = GridStack.init({
