@@ -44,8 +44,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
             const typedData = data as any;
 
-            const isMarketOpen = marketStatus[typedData.assetMainType] || false;
-            const isOvernight = !isMarketOpen;
+            const isOvernight = typedData.assetMainType === 'EQUITY'
+                ? (marketStatus['EQUITY_OVERNIGHT'] || false)
+                : false;
 
             processedData[symbol] = calculateDisplayQuote(typedData, priceType, isOvernight);
         }

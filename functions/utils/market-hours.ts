@@ -62,6 +62,14 @@ function isEquitiesOpen(day: number, hour: number): boolean {
     return false;
 }
 
+function isEquityOvernight(day: number, hour: number): boolean {
+    // Active trading hours (Pre + Regular + Post) are Mon-Fri, 4:00 AM to 8:00 PM ET
+    if (day >= 1 && day <= 5) {
+        if (hour >= 4 && hour < 20) return false;
+    }
+    return true; // Outside these hours is the overnight session
+}
+
 function isFutureOpen(day: number, hour: number): boolean {
     // Trades from Sunday at 6:00 pm ET to Friday at 5:00 pm ET
     if (day >= 1 && day <= 4) return true;
@@ -104,6 +112,7 @@ export async function getMarketStatus(env: Env, targetDate: Date = new Date()): 
 
     return {
         EQUITY: isEquitiesOpen(day, hour),
+        EQUITY_OVERNIGHT: isEquityOvernight(day, hour),
         FUTURE: isFutureOpen(day, hour),
         FOREX: isForexOpen(day, hour),
         OPTION: isApiMarketOpen(apiData, 'option', nowTime),
