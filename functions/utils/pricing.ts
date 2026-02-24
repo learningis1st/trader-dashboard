@@ -7,13 +7,20 @@ export function calculateDisplayQuote(
 ) {
     const quote = quoteData.quote || {};
     const extended = quoteData.extended;
-    const regular = quoteData.regular;
+    const regular = quoteData.regular || {};
 
     let price = 0, change = 0, changePct = 0;
-    const useExtended = isOvernight && extended && regular;
+
+    // Use extended data if the market is closed (overnight session) and extended data exists
+    const useExtended = isOvernight && extended;
 
     if (useExtended) {
-        price = extended.mark || extended.lastPrice || 0;
+        if (priceType === 'lastPrice') {
+            price = extended.lastPrice || 0;
+        } else {
+            price = extended.mark || extended.lastPrice || 0;
+        }
+
         const prevClose = regular.regularMarketLastPrice || price;
         change = price - prevClose;
         changePct = prevClose !== 0 ? (change / prevClose) * 100 : 0;

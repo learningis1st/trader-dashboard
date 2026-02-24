@@ -54,10 +54,11 @@ function isApiMarketOpen(apiData: any, marketKey: string, nowTime: number): bool
 }
 
 function isEquitiesOpen(day: number, hour: number): boolean {
-    // Trades 24/5 (close 8pm ET Friday, reopen 8pm ET Sunday)
-    if (day >= 1 && day <= 4) return true; // Mon-Thu
-    if (day === 5 && hour < 20) return true; // Fri before 8 PM
-    if (day === 0 && hour >= 20) return true; // Sun from 8 PM onwards
+    // Active quoting (Pre-market + Regular + Post-market) is 4:00 AM to 8:00 PM ET
+    // Anything outside this window (8:00 PM to 4:00 AM) is considered the overnight session
+    if (day >= 1 && day <= 5) { // Monday through Friday
+        if (hour >= 4 && hour < 20) return true;
+    }
     return false;
 }
 
