@@ -12,6 +12,8 @@ export function setupMagicInput() {
         input.focus();
     };
 
+    modal.addEventListener('click', e => e.target === modal && closeModal());
+
     document.addEventListener('keydown', e => {
         // Prevent triggering if user is already typing in an input
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
