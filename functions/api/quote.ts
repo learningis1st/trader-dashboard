@@ -27,7 +27,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     const url = new URL(QUOTE_API);
     url.searchParams.set('symbols', symbolsArray.join(','));
-    url.searchParams.set('fields', 'quote,extended,regular');
+
+    const fields = marketStatus['EQUITY_OVERNIGHT'] ? 'quote,extended,regular' : 'quote';
+    url.searchParams.set('fields', fields);
 
     try {
         const resp = await fetch(url.toString());
