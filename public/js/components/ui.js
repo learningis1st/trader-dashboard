@@ -95,6 +95,8 @@ export function createTickerInput(oldSymbol, el, onComplete) {
     const input = document.createElement('input');
     input.type = 'text';
     input.value = oldSymbol;
+    input.name = 'ticker-edit-input'; 
+    input.id = `edit-${oldSymbol}`;
     input.className = 'bg-gray-700 text-white responsive-symbol font-bold w-[50cqmin] px-1 rounded border border-blue-500 uppercase focus:outline-none';
 
     const parent = el.parentNode;
