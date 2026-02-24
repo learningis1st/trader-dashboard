@@ -9,29 +9,46 @@ const DEBOUNCE_CLOUD = 200;
 let localDebounce = null;
 let cloudDebounce = null;
 
+function extractLayoutFromGrid(grid) {
+    return grid.engine.nodes.map(node => ({
+        symbol: unescapeHtml(node.id),
+        x: node.x,
+        y: node.y,
+        w: node.w,
+        h: node.h
+    }));
+}
+
+function saveLayoutLocally(layout) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
+}
+
+async function saveLayoutToCloud(layout) {
+    try {
+        await fetch('/api/layout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(layout)
+        });
+    } catch (err) {
+        console.error('Cloud save failed:', err);
+    }
+}
+
 export function saveLayout() {
     if (state.isRestoring) return;
 
     clearTimeout(localDebounce);
     localDebounce = setTimeout(() => {
-        const layout = state.grid.engine.nodes.map(node => ({
-            symbol: unescapeHtml(node.id),
-            x: node.x,
-            y: node.y,
-            w: node.w,
-            h: node.h
-        }));
+        const layout = extractLayoutFromGrid(state.grid);
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
+        saveLayoutLocally(layout);
 
         clearTimeout(cloudDebounce);
         cloudDebounce = setTimeout(() => {
-            fetch('/api/layout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(layout)
-            }).catch(err => console.error('Cloud save failed:', err));
+            saveLayoutToCloud(layout);
         }, DEBOUNCE_CLOUD);
+
     }, DEBOUNCE_LOCAL);
 }
 
