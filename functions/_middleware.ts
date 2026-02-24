@@ -24,14 +24,12 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     if (path.startsWith("/api/")) {
         const allowedMethods = API_ROUTES[path];
-
         if (!allowedMethods) {
             return new Response(JSON.stringify({ error: "Not Found" }), {
                 status: 404,
                 headers: { "Content-Type": "application/json" }
             });
         }
-
         if (!allowedMethods.includes(method)) {
             return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
                 status: 405,
@@ -48,29 +46,24 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     const isAuthRoute = ["/login", "/signup", "/api/auth", "/api/signup"].includes(path);
     const isApiRoute = path.startsWith("/api/");
+    const isRootRoute = path === "/";
 
     // --- AUTHENTICATED USER FLOW ---
     if (sessionData) {
         context.data.yubikeyId = sessionData.yubikeyId;
-
-        if (isAuthRoute) {
+        if (isAuthRoute || (!isRootRoute && !isApiRoute)) {
             return Response.redirect(new URL("/", context.request.url).toString(), 302);
         }
-
         return context.next();
     }
 
     // --- UNAUTHENTICATED USER FLOW ---
-    if (isAuthRoute) {
-        return context.next();
-    }
-
+    if (isAuthRoute) return context.next();
     if (isApiRoute) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
             status: 401,
             headers: { "Content-Type": "application/json" }
         });
     }
-
     return Response.redirect(new URL("/login", context.request.url).toString(), 302);
 };
