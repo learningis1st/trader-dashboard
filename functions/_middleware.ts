@@ -20,14 +20,24 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     const isAuthRoute = ["/login", "/api/auth", "/signup", "/api/signup"].includes(url.pathname);
 
+    // --- AUTHENTICATED USER FLOW ---
     if (sessionData) {
         context.data.yubikeyId = sessionData.yubikeyId;
+
         if (isAuthRoute) {
             return Response.redirect(new URL("/", context.request.url).toString(), 302);
         }
-        return context.next();
+
+        const response = await context.next();
+
+        if (response.status === 404) {
+            return Response.redirect(new URL("/", context.request.url).toString(), 302);
+        }
+
+        return response;
     }
 
+    // --- UNAUTHENTICATED USER FLOW ---
     if (isAuthRoute) {
         return context.next();
     }
