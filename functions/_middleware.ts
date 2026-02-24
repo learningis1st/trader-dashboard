@@ -1,9 +1,18 @@
 import { Env } from "./utils/env";
 import { verifySessionCookie } from "./utils/session";
 
+const API_ROUTES: Record<string, string[]> = {
+    "/api/auth": ["POST"],
+    "/api/signup": ["POST"],
+    "/api/me": ["GET"],
+    "/api/quote": ["POST"],
+    "/api/layout": ["GET", "POST"]
+};
+
 export const onRequest: PagesFunction<Env> = async (context) => {
     const url = new URL(context.request.url);
     const path = url.pathname;
+    const method = context.request.method;
 
     const sessionSecret = context.env.SESSION_SECRET;
     if (!sessionSecret) {
@@ -11,6 +20,24 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             status: 500,
             headers: { "Content-Type": "application/json" }
         });
+    }
+
+    if (path.startsWith("/api/")) {
+        const allowedMethods = API_ROUTES[path];
+
+        if (!allowedMethods) {
+            return new Response(JSON.stringify({ error: "Not Found" }), {
+                status: 404,
+                headers: { "Content-Type": "application/json" }
+            });
+        }
+
+        if (!allowedMethods.includes(method)) {
+            return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
+                status: 405,
+                headers: { "Content-Type": "application/json", "Allow": allowedMethods.join(", ") }
+            });
+        }
     }
 
     const sessionData = await verifySessionCookie(
