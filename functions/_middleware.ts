@@ -5,8 +5,9 @@ const PUBLIC_ASSETS = ["/app.js", "/style.css", "/favicon.ico"];
 
 export const onRequest: PagesFunction<Env> = async (context) => {
     const url = new URL(context.request.url);
+    const path = url.pathname;
 
-    if (PUBLIC_ASSETS.includes(url.pathname)) {
+    if (PUBLIC_ASSETS.includes(path) || path.startsWith("/js/")) {
         return context.next();
     }
 
@@ -18,7 +19,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         context.env.DB
     );
 
-    const isAuthRoute = ["/login", "/api/auth", "/signup", "/api/signup"].includes(url.pathname);
+    const isAuthRoute = ["/login", "/api/auth", "/signup", "/api/signup"].includes(path);
+    const isApiRoute = path.startsWith("/api/");
 
     // --- AUTHENTICATED USER FLOW ---
     if (sessionData) {
@@ -28,13 +30,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             return Response.redirect(new URL("/", context.request.url).toString(), 302);
         }
 
-        const response = await context.next();
-
-        if (response.status === 404) {
-            return Response.redirect(new URL("/", context.request.url).toString(), 302);
+        if (path === "/" || isApiRoute) {
+            return context.next();
         }
 
-        return response;
+        return Response.redirect(new URL("/", context.request.url).toString(), 302);
     }
 
     // --- UNAUTHENTICATED USER FLOW ---
