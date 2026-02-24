@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "include": [
+    "/*"
+  ],
+  "exclude": [
+    "/app.js",
+    "/style.css",
+    "/favicon.ico",
+    "/js/*"
+  ]
+}
