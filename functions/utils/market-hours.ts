@@ -8,7 +8,6 @@ export const getTodayET = () =>
 export async function fetchMarketSchedule(env: Env) {
     const today = getTodayET();
 
-    // Check DB cache first
     const cached = await env.DB
         .prepare('SELECT data FROM market_hours WHERE date = ?')
         .bind(today)
@@ -18,13 +17,11 @@ export async function fetchMarketSchedule(env: Env) {
         return { date: today, data: JSON.parse(cached.data) };
     }
 
-    // Fetch from external API if missing
-    const response = await fetch(MARKET_HOURS_API);
+    const response = await env.SCHWAB_WORKER.fetch(MARKET_HOURS_API);
     if (!response.ok) throw new Error(`API error: ${response.status}`);
 
     const marketData = await response.json();
 
-    // Save back to DB cache
     await env.DB
         .prepare('INSERT OR REPLACE INTO market_hours (date, data, created_at) VALUES (?, ?, ?)')
         .bind(today, JSON.stringify(marketData), Date.now())

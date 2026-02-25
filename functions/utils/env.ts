@@ -3,4 +3,5 @@ export interface Env {
     YUBICO_SECRET_KEY?: string;
     SESSION_SECRET?: string;
     DB: D1Database;
+    SCHWAB_WORKER: Fetcher;
 }

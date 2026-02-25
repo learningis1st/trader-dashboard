@@ -32,7 +32,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     url.searchParams.set('fields', fields);
 
     try {
-        const resp = await fetch(url.toString());
+        const resp = await context.env.SCHWAB_WORKER.fetch(url.toString());
         if (!resp.ok) throw new Error(`API error: ${resp.status}`);
 
         const rawData = await resp.json();
