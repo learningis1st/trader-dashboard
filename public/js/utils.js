@@ -10,14 +10,17 @@ const HTML_UNESCAPE_MAP = Object.fromEntries(
     Object.entries(HTML_ESCAPE_MAP).map(([k, v]) => [v, k])
 );
 
+const ESCAPE_REGEX = /[&<>"']/g;
+const UNESCAPE_REGEX = /&amp;|&lt;|&gt;|&quot;|&#039;/g;
+
 export function escapeHtml(text) {
     if (!text) return text;
-    return text.replace(/[&<>"']/g, m => HTML_ESCAPE_MAP[m]);
+    return text.replace(ESCAPE_REGEX, m => HTML_ESCAPE_MAP[m]);
 }
 
 export function unescapeHtml(text) {
     if (!text) return text;
-    return text.replace(/&amp;|&lt;|&gt;|&quot;|&#039;/g, m => HTML_UNESCAPE_MAP[m]);
+    return text.replace(UNESCAPE_REGEX, m => HTML_UNESCAPE_MAP[m]);
 }
 
 export function getAppropriateDecimals(price, userPrecision) {
