@@ -21,27 +21,27 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
 
     if (method === "POST") {
+        const MAX_LAYOUT_SIZE = 32 * 1024; // 32KB
+        const bodyText = await context.request.text();
+
+        if (bodyText.length > MAX_LAYOUT_SIZE) {
+            return jsonResponse({ error: "Payload too large" }, 413);
+        }
+
         try {
-            const MAX_LAYOUT_SIZE = 32 * 1024; // 32KB
-            const bodyText = await context.request.text();
-
-            if (bodyText.length > MAX_LAYOUT_SIZE) {
-                return jsonResponse({ error: "Payload too large" }, 413);
-            }
-
             JSON.parse(bodyText);
 
             await context.env.DB.prepare(
-                `INSERT INTO user_layouts (user_id, layout, updated_at) 
-                 VALUES (?, ?, ?) 
-                 ON CONFLICT(user_id) DO UPDATE SET 
-                 layout = excluded.layout, 
+                `INSERT INTO user_layouts (user_id, layout, updated_at)
+                 VALUES (?, ?, ?)
+                 ON CONFLICT(user_id) DO UPDATE SET
+                 layout = excluded.layout,
                  updated_at = excluded.updated_at`
             ).bind(userId, bodyText, Date.now()).run();
 
             return jsonResponse({ success: true });
         } catch {
-            return jsonResponse({ error: "Invalid data or failed to save" }, 400);
+            return jsonResponse({ error: "Invalid data format" }, 400);
         }
     }
 
