@@ -13,8 +13,13 @@ export const onRequest: PagesFunction<Env> = async (context) => {
                 "SELECT layout FROM user_layouts WHERE user_id = ?"
             ).bind(userId).first<{ layout: string }>();
 
-            const layoutData = result?.layout ? JSON.parse(result.layout) : [];
-            return jsonResponse(layoutData);
+            if (result?.layout) {
+                return new Response(result.layout, {
+                    status: 200,
+                    headers: { "Content-Type": "application/json" }
+                });
+            }
+            return jsonResponse([]);
         } catch {
             return jsonResponse({ error: "Failed to load layout" }, 500);
         }
