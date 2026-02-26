@@ -15,7 +15,6 @@ export async function createSignedSessionValue(secret: string, yubikeyId: string
 export async function verifySessionCookie(
     cookieHeader: string | null,
     secret: string,
-    db: any
 ): Promise<{ yubikeyId: string } | null> {
     if (!cookieHeader || !secret) return null;
 
@@ -34,13 +33,8 @@ export async function verifySessionCookie(
         if (Date.now() > data.exp) return null;
         if (!data.yubikeyId) return null;
 
-        const dbResult = await db.prepare(
-            "SELECT yubikey_id FROM yubikeys WHERE yubikey_id = ?"
-        ).bind(data.yubikeyId.toLowerCase()).first();
-
-        if (!dbResult) return null;
-
         return { yubikeyId: data.yubikeyId };
+
     } catch {
         return null;
     }
