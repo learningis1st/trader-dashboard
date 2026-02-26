@@ -25,7 +25,7 @@ export function renderQuotes(processedData) {
 
         if (!els.price || !els.chg || !els.pct) continue;
 
-        const { price, change, changePct } = info;
+        const [ price, change, changePct ] = info;
 
         handlePriceFlash(els.price, symbol, price);
         updatePriceDisplay(els, price, change, changePct);

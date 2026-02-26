@@ -36,9 +36,9 @@ export function calculateDisplayQuote(
         }
     }
 
-    return {
-        price: cleanFloat(price),
-        change: cleanFloat(change),
-        changePct: cleanFloat(changePct)
-    };
+    return [
+        cleanFloat(price),
+        cleanFloat(change),
+        cleanFloat(changePct)
+    ];
 }
