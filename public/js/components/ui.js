@@ -19,6 +19,26 @@ const domCache = new Map();
 
 window.addEventListener('widget-removed', (e) => domCache.delete(e.detail.symbol));
 
+function applyColors(els, change) {
+    let newColorMode = change > 0 ? 'positive' : (change < 0 ? 'negative' : 'neutral');
+
+    if (els.colorMode === newColorMode) return;
+
+    [els.price, els.chg, els.pct].forEach(el => el.classList.remove(...ALL_COLORS));
+
+    if (newColorMode === 'positive') {
+        [els.price, els.chg, els.pct].forEach(el => el.classList.add(COLORS.positive));
+    } else if (newColorMode === 'negative') {
+        [els.price, els.chg, els.pct].forEach(el => el.classList.add(COLORS.negative));
+    } else {
+        els.price.classList.add(COLORS.neutral);
+        els.chg.classList.add(COLORS.muted);
+        els.pct.classList.add(COLORS.muted);
+    }
+
+    els.colorMode = newColorMode;
+}
+
 export function renderQuotes(processedData) {
     for (const [symbol, info] of Object.entries(processedData)) {
         let els = domCache.get(symbol);
@@ -27,7 +47,8 @@ export function renderQuotes(processedData) {
             els = {
                 price: document.getElementById(`price-${symbol}`),
                 chg: document.getElementById(`chg-${symbol}`),
-                pct: document.getElementById(`pct-${symbol}`)
+                pct: document.getElementById(`pct-${symbol}`),
+                colorMode: null
             };
             if (!els.price || !els.chg || !els.pct) continue;
             domCache.set(symbol, els);
@@ -83,20 +104,6 @@ function updatePriceDisplay(els, price, change, changePct) {
     els.price.innerText = formatPrice(price, state.DECIMAL_PRECISION);
     els.chg.innerText = sign(change) + formatNumber(change, precision);
     els.pct.innerText = sign(changePct) + changePct.toFixed(2) + '%';
-}
-
-function applyColors({ price, chg, pct }, change) {
-    [price, chg, pct].forEach(el => el.classList.remove(...ALL_COLORS));
-
-    if (change > 0) {
-        [price, chg, pct].forEach(el => el.classList.add(COLORS.positive));
-    } else if (change < 0) {
-        [price, chg, pct].forEach(el => el.classList.add(COLORS.negative));
-    } else {
-        price.classList.add(COLORS.neutral);
-        chg.classList.add(COLORS.muted);
-        pct.classList.add(COLORS.muted);
-    }
 }
 
 export function createTickerInput(oldSymbol, el, onComplete) {
