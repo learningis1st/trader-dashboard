@@ -5,8 +5,14 @@ const MARKET_HOURS_API = 'https://finance.learningis1.st/markets?markets=option,
 export const getTodayET = () =>
     new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 
+let scheduleCache: { date: string, data: any } | null = null;
+
 export async function fetchMarketSchedule(env: Env) {
     const today = getTodayET();
+
+    if (scheduleCache && scheduleCache.date === today) {
+        return scheduleCache;
+    }
 
     const cached = await env.DB
         .prepare('SELECT data FROM market_hours WHERE date = ?')
@@ -14,7 +20,8 @@ export async function fetchMarketSchedule(env: Env) {
         .first<{ data: string }>();
 
     if (cached?.data) {
-        return { date: today, data: JSON.parse(cached.data) };
+        scheduleCache = { date: today, data: JSON.parse(cached.data) };
+        return scheduleCache;
     }
 
     const response = await env.SCHWAB_WORKER.fetch(MARKET_HOURS_API);
@@ -27,7 +34,8 @@ export async function fetchMarketSchedule(env: Env) {
         .bind(today, JSON.stringify(marketData), Date.now())
         .run();
 
-    return { date: today, data: marketData };
+    scheduleCache = { date: today, data: marketData };
+    return scheduleCache;
 }
 
 function isApiMarketOpen(apiData: any, marketKey: string, nowTime: number): boolean {
