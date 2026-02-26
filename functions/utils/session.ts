@@ -1,7 +1,7 @@
 import { signHmacSha256, timingSafeEqual, base64ToBase64Url, base64UrlToBase64 } from "./crypto";
 
-export const SESSION_DURATION_MS = 3600 * 1000; // 1 hour
-export const SESSION_MAX_AGE_SECONDS = 3600;
+export const SESSION_DURATION_MS = 12 * 3600 * 1000; // 12 hours
+export const SESSION_MAX_AGE_SECONDS = 12 * 3600;
 
 export async function createSignedSessionValue(secret: string, yubikeyId: string): Promise<string> {
     const expiration = Date.now() + SESSION_DURATION_MS;
