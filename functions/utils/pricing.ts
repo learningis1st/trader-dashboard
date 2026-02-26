@@ -1,4 +1,5 @@
 const cleanFloat = (num: number) => Number(num.toFixed(6));
+const cleanPct = (num: number) => Number(num.toFixed(2));
 
 export function calculateDisplayQuote(
     quoteData: any,
@@ -39,6 +40,6 @@ export function calculateDisplayQuote(
     return [
         cleanFloat(price),
         cleanFloat(change),
-        cleanFloat(changePct)
+        cleanPct(changePct)
     ];
 }
