@@ -15,15 +15,23 @@ export function updateEmptyHint() {
         ?.classList.toggle('hidden', state.symbolList.length > 0);
 }
 
+const domCache = new Map();
+
+window.addEventListener('widget-removed', (e) => domCache.delete(e.detail.symbol));
+
 export function renderQuotes(processedData) {
     for (const [symbol, info] of Object.entries(processedData)) {
-        const els = {
-            price: document.getElementById(`price-${symbol}`),
-            chg: document.getElementById(`chg-${symbol}`),
-            pct: document.getElementById(`pct-${symbol}`)
-        };
+        let els = domCache.get(symbol);
 
-        if (!els.price || !els.chg || !els.pct) continue;
+        if (!els) {
+            els = {
+                price: document.getElementById(`price-${symbol}`),
+                chg: document.getElementById(`chg-${symbol}`),
+                pct: document.getElementById(`pct-${symbol}`)
+            };
+            if (!els.price || !els.chg || !els.pct) continue;
+            domCache.set(symbol, els);
+        }
 
         const [ price, change, changePct ] = info;
 
