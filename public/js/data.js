@@ -7,8 +7,19 @@ import {
 
 export function startRefreshInterval() {
     clearInterval(getState().refreshInterval);
-    setRefreshInterval(setInterval(fetchData, getState().REFRESH_RATE));
+    setRefreshInterval(setInterval(() => {
+        // Only fetch if the tab is actively visible
+        if (!document.hidden) {
+            fetchData();
+        }
+    }, getState().REFRESH_RATE));
 }
+
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+        fetchData();
+    }
+});
 
 export async function fetchData() {
     window.dispatchEvent(new CustomEvent('update-empty-hint'));
