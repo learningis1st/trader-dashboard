@@ -15,9 +15,15 @@ export function startRefreshInterval() {
     }, getState().REFRESH_RATE));
 }
 
+let visibilityTimeout;
+
 document.addEventListener("visibilitychange", () => {
+    clearTimeout(visibilityTimeout);
+
     if (!document.hidden) {
-        fetchData();
+        visibilityTimeout = setTimeout(() => {
+            fetchData();
+        }, 300); // Wait 300ms before asserting user is active again to avoid rapid fetches when switching tabs quickly
     }
 });
 
