@@ -3,7 +3,7 @@ import { jsonResponse } from "../utils/response";
 
 const MAX_LAYOUT_SIZE = 32 * 1024; // 32KB
 const MAX_WIDGETS = 100;
-const SYMBOL_PATTERN = /^[A-Z0-9._-]{1,15}$/;
+const SYMBOL_PATTERN = /^\/?[A-Z0-9][A-Z0-9._-]{0,14}$/;
 
 type LayoutItem = {
     symbol: string;

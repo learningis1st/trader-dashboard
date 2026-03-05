@@ -5,7 +5,7 @@ import { calculateDisplayQuote } from "../utils/pricing";
 
 const QUOTE_API = "https://finance.learningis1.st/quote";
 const MAX_SYMBOLS = 100;
-const SYMBOL_PATTERN = /^[A-Z0-9._-]{1,15}$/;
+const SYMBOL_PATTERN = /^\/?[A-Z0-9][A-Z0-9._-]{0,14}$/;
 
 function normalizeSymbols(symbols: unknown): string[] {
     if (!Array.isArray(symbols)) return [];

@@ -69,7 +69,7 @@ async function fetchQuote(symbols) {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            symbols: symbols,
+            symbols,
             priceType: getState().PRICE_TYPE
         })
     });
@@ -79,6 +79,15 @@ async function fetchQuote(symbols) {
         return null;
     }
 
-    if (!response.ok) throw new Error('API Error');
+    if (response.status === 401) {
+        window.location.reload();
+        return null;
+    }
+
+    if (!response.ok) {
+        const message = `API Error (${response.status})`;
+        throw new Error(message);
+    }
+
     return response.json();
 }
