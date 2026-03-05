@@ -1,6 +1,35 @@
 import { Env } from "../utils/env";
 import { jsonResponse } from "../utils/response";
 
+const MAX_LAYOUT_SIZE = 32 * 1024; // 32KB
+const MAX_WIDGETS = 100;
+const SYMBOL_PATTERN = /^[A-Z0-9._-]{1,15}$/;
+
+type LayoutItem = {
+    symbol: string;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+};
+
+function isValidLayout(data: unknown): data is LayoutItem[] {
+    if (!Array.isArray(data) || data.length > MAX_WIDGETS) return false;
+
+    return data.every((item) => {
+        if (!item || typeof item !== "object") return false;
+
+        const entry = item as Record<string, unknown>;
+        if (typeof entry.symbol !== "string") return false;
+        if (!SYMBOL_PATTERN.test(entry.symbol.trim().toUpperCase())) return false;
+
+        return ["x", "y", "w", "h"].every((key) => {
+            const value = entry[key];
+            return typeof value === "number" && Number.isFinite(value);
+        });
+    });
+}
+
 export const onRequest: PagesFunction<Env> = async (context) => {
     const userId = context.data.yubikeyId as string;
     if (!userId) return jsonResponse({ error: "Unauthorized" }, 401);
@@ -26,27 +55,35 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
 
     if (method === "POST") {
-        const MAX_LAYOUT_SIZE = 32 * 1024; // 32KB
         const bodyText = await context.request.text();
 
         if (bodyText.length > MAX_LAYOUT_SIZE) {
             return jsonResponse({ error: "Payload too large" }, 413);
         }
 
+        let parsedBody: unknown;
         try {
-            JSON.parse(bodyText);
+            parsedBody = JSON.parse(bodyText);
+        } catch {
+            return jsonResponse({ error: "Invalid JSON" }, 400);
+        }
 
+        if (!isValidLayout(parsedBody)) {
+            return jsonResponse({ error: "Invalid layout format" }, 400);
+        }
+
+        try {
             await context.env.DB.prepare(
                 `INSERT INTO user_layouts (user_id, layout, updated_at)
                  VALUES (?, ?, ?)
                  ON CONFLICT(user_id) DO UPDATE SET
                  layout = excluded.layout,
                  updated_at = excluded.updated_at`
-            ).bind(userId, bodyText, Date.now()).run();
+            ).bind(userId, JSON.stringify(parsedBody), Date.now()).run();
 
             return jsonResponse({ success: true });
         } catch {
-            return jsonResponse({ error: "Invalid data format" }, 400);
+            return jsonResponse({ error: "Failed to save layout" }, 500);
         }
     }
 

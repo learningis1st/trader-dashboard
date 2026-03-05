@@ -4,6 +4,8 @@ import { fetchData } from './data.js';
 import { addWidgetToGrid, removeWidgetFromGrid, getWidgetNode, clearGrid, batchUpdateGrid, commitGrid } from './components/widgets.js';
 import { createTickerInput } from './components/ui.js';
 
+const normalizeSymbol = (symbol) => (typeof symbol === 'string' ? symbol.trim().toUpperCase() : '');
+
 export function applyLayoutAction(layout) {
     setIsRestoring(true);
     batchUpdateGrid();
@@ -17,52 +19,73 @@ export function applyLayoutAction(layout) {
 }
 
 export function addSymbolAction(symbol, options = null) {
-    if (getState().symbolList.includes(symbol)) return;
+    const normalized = normalizeSymbol(symbol);
+    if (!normalized || getState().symbolList.includes(normalized)) return;
 
-    addSymbol(symbol);
-    addWidgetToGrid(symbol, options);
+    addSymbol(normalized);
+    addWidgetToGrid(normalized, options);
 
     saveLayout();
     window.dispatchEvent(new CustomEvent('update-empty-hint'));
 }
 
 export function removeSymbolAction(symbol) {
-    removeWidgetFromGrid(symbol);
-    removeSymbolFromState(symbol);
-    delete getState().previousPrices[symbol];
-    delete getState().assetTypeCache[symbol];
+    const normalized = normalizeSymbol(symbol);
+    if (!normalized) return;
+
+    removeWidgetFromGrid(normalized);
+    removeSymbolFromState(normalized);
+
+    delete getState().previousPrices[normalized];
+    delete getState().assetTypeCache[normalized];
+    delete getState().lastQuotes[normalized];
+
+    const pendingFlash = getState().flashTimeouts[normalized];
+    if (pendingFlash) {
+        clearTimeout(pendingFlash);
+        delete getState().flashTimeouts[normalized];
+    }
 
     saveLayout();
     window.dispatchEvent(new CustomEvent('update-empty-hint'));
 }
 
 export function replaceSymbolAction(oldSymbol, newSymbol) {
-    const node = getWidgetNode(oldSymbol);
+    const normalizedOld = normalizeSymbol(oldSymbol);
+    const normalizedNew = normalizeSymbol(newSymbol);
+    if (!normalizedOld || !normalizedNew) return false;
+
+    const node = getWidgetNode(normalizedOld);
     if (!node) return false;
 
     const position = { x: node.x, y: node.y, w: node.w, h: node.h };
 
-    removeSymbolAction(oldSymbol);
-    addSymbolAction(newSymbol, position);
+    removeSymbolAction(normalizedOld);
+    addSymbolAction(normalizedNew, position);
     fetchData();
     return true;
 }
 
 export function editTickerAction(oldSymbol, el) {
-    createTickerInput(oldSymbol, el, (newSymbol) => {
-        if (!newSymbol || newSymbol === oldSymbol) return false;
+    const normalizedOld = normalizeSymbol(oldSymbol);
 
-        if (getState().symbolList.includes(newSymbol)) {
-            alert(`Symbol ${newSymbol} is already on the dashboard.`);
+    createTickerInput(normalizedOld, el, (newSymbol) => {
+        const normalizedNew = normalizeSymbol(newSymbol);
+        if (!normalizedNew || normalizedNew === normalizedOld) return false;
+
+        if (getState().symbolList.includes(normalizedNew)) {
+            alert(`Symbol ${normalizedNew} is already on the dashboard.`);
             return false;
         }
 
-        return replaceSymbolAction(oldSymbol, newSymbol);
+        return replaceSymbolAction(normalizedOld, normalizedNew);
     });
 }
 
 export function openTradingViewAction(symbol) {
-    window.open(`https://www.tradingview.com/chart/?symbol=${symbol}`, '_blank');
+    const normalized = normalizeSymbol(symbol);
+    if (!normalized) return;
+    window.open(`https://www.tradingview.com/chart/?symbol=${normalized}`, '_blank');
 }
 
 window.widgetActions = {

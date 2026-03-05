@@ -27,10 +27,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         await registerYubikey(context.env.DB, yubikeyId);
 
         return await createSessionResponse(context.env, yubikeyId);
-    } catch (error: any) {
+    } catch (error) {
         console.error("Signup System Error:", error);
-        const errorMsg = error.message.includes("configuration")
-            ? error.message
+        const message = error instanceof Error ? error.message : "";
+        const errorMsg = message.includes("configuration")
+            ? message
             : "Registration Service Unavailable. Try again.";
         return redirectWithError(errorMsg);
     }

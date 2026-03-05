@@ -40,8 +40,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     const sessionData = await verifySessionCookie(
         context.request.headers.get("Cookie"),
-        sessionSecret,
-        context.env.DB
+        sessionSecret
     );
 
     const isAuthRoute = ["/login", "/signup", "/api/auth", "/api/signup"].includes(path);

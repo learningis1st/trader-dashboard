@@ -29,10 +29,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         if (!isValid) return redirectWithError("Invalid OTP");
 
         return await createSessionResponse(context.env, yubikeyId);
-    } catch (error: any) {
+    } catch (error) {
         console.error("Auth System Error:", error);
-        const errorMsg = error.message.includes("configuration")
-            ? error.message
+        const message = error instanceof Error ? error.message : "";
+        const errorMsg = message.includes("configuration")
+            ? message
             : "Verification Service Unavailable. Try again.";
         return redirectWithError(errorMsg);
     }
