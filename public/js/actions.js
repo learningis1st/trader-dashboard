@@ -46,6 +46,8 @@ export function removeSymbolAction(symbol) {
         delete getState().flashTimeouts[normalized];
     }
 
+    window.dispatchEvent(new CustomEvent('widget-removed', { detail: { symbol: normalized } }));
+
     saveLayout();
     window.dispatchEvent(new CustomEvent('update-empty-hint'));
 }
