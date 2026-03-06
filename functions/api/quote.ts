@@ -4,7 +4,7 @@ import { getMarketStatus } from "../utils/market-hours";
 import { calculateDisplayQuote } from "../utils/pricing";
 import type { QuoteData } from "../utils/types";
 
-const QUOTE_API = "https://finance.learningis1.st/quote";
+const QUOTE_API = "https://worker.internal/quote";
 const MAX_SYMBOLS = 100;
 const SYMBOL_PATTERN = /^\/?[A-Z0-9][A-Z0-9._-]{0,14}$/;
 

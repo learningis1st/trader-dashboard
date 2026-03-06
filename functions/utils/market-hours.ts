@@ -1,7 +1,7 @@
 import { Env } from "./env";
 import type { MarketScheduleData, ProductSchedule, SessionHour, ScheduleCache, MarketStatus } from "./types";
 
-const MARKET_HOURS_API = 'https://finance.learningis1.st/markets?markets=option,bond';
+const MARKET_HOURS_API = "https://worker.internal/markets?markets=option,bond";
 
 export const getTodayET = () =>
     new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
