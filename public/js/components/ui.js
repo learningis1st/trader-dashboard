@@ -2,8 +2,8 @@ import { state } from '../store/state.js';
 import { getAppropriateDecimals, formatPrice, formatNumber } from '../utils.js';
 
 const COLORS = {
-    positive: 'text-[#4ade80]',
-    negative: 'text-[#f87171]',
+    positive: 'text-green-400',
+    negative: 'text-red-400',
     neutral: 'text-gray-300',
     muted: 'text-gray-500'
 };
@@ -64,17 +64,26 @@ export function renderQuotes(processedData) {
 
 export function handleInvalidSymbols(invalidSymbols) {
     invalidSymbols.forEach(sym => {
-        const priceEl = document.getElementById(`price-${sym}`);
-        const chgEl = document.getElementById(`chg-${sym}`);
-        const pctEl = document.getElementById(`pct-${sym}`);
+        let els = domCache.get(sym);
 
-        if (priceEl) {
-            priceEl.innerText = '---';
-            priceEl.classList.remove(...ALL_COLORS, 'text-[#fbbf24]');
-            priceEl.classList.add(COLORS.neutral);
+        if (!els) {
+            els = {
+                price: document.getElementById(`price-${sym}`),
+                chg: document.getElementById(`chg-${sym}`),
+                pct: document.getElementById(`pct-${sym}`),
+                colorMode: null
+            };
+            if (!els.price || !els.chg || !els.pct) return;
+            domCache.set(sym, els);
         }
-        if (chgEl) chgEl.innerText = '--';
-        if (pctEl) pctEl.innerText = '--%';
+
+        if (els.price) {
+            els.price.innerText = '---';
+            els.price.classList.remove(...ALL_COLORS, 'text-[#fbbf24]');
+            els.price.classList.add(COLORS.neutral);
+        }
+        if (els.chg) els.chg.innerText = '--';
+        if (els.pct) els.pct.innerText = '--%';
     });
 }
 
