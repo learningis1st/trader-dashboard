@@ -1,11 +1,12 @@
 import { Env } from "./env";
+import type { MarketScheduleData, ProductSchedule, SessionHour, ScheduleCache, MarketStatus } from "./types";
 
 const MARKET_HOURS_API = 'https://finance.learningis1.st/markets?markets=option,bond';
 
 export const getTodayET = () =>
     new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 
-let scheduleCache: { date: string, data: any } | null = null;
+let scheduleCache: ScheduleCache | null = null;
 
 export async function fetchMarketSchedule(env: Env) {
     const today = getTodayET();
@@ -38,10 +39,10 @@ export async function fetchMarketSchedule(env: Env) {
     return scheduleCache;
 }
 
-function isApiMarketOpen(apiData: any, marketKey: string, nowTime: number): boolean {
-    if (!apiData || !apiData[marketKey]) return false;
+function isApiMarketOpen(apiData: MarketScheduleData | null, marketKey: string, nowTime: number): boolean {
+    if (!apiData || !apiData[marketKey as keyof MarketScheduleData]) return false;
 
-    return Object.values(apiData[marketKey]).some((product: any) => {
+    return Object.values(apiData[marketKey as keyof MarketScheduleData] || {}).some((product: ProductSchedule) => {
         if (!product.isOpen || !product.sessionHours) return false;
 
         const allSessions = [
@@ -50,7 +51,7 @@ function isApiMarketOpen(apiData: any, marketKey: string, nowTime: number): bool
             ...(product.sessionHours.postMarket || [])
         ];
 
-        return allSessions.some((session: any) => {
+        return allSessions.some((session: SessionHour) => {
             const start = new Date(session.start).getTime();
             const end = new Date(session.end).getTime();
             return nowTime >= start && nowTime <= end;
@@ -91,8 +92,8 @@ function isForexOpen(day: number, hour: number): boolean {
     return false;
 }
 
-export async function getMarketStatus(env: Env, targetDate: Date = new Date()): Promise<Record<string, boolean>> {
-    let apiData = null;
+export async function getMarketStatus(env: Env, targetDate: Date = new Date()): Promise<MarketStatus> {
+    let apiData: MarketScheduleData | null = null;
     try {
         const scheduleResult = await fetchMarketSchedule(env);
         apiData = scheduleResult.data;

@@ -1,8 +1,10 @@
+import type { QuoteData } from "./types";
+
 const cleanFloat = (num: number) => Number(num.toFixed(6));
 const cleanPct = (num: number) => Number(num.toFixed(2));
 
 export function calculateDisplayQuote(
-    quoteData: any,
+    quoteData: QuoteData,
     priceType: string,
     isOvernight: boolean
 ) {

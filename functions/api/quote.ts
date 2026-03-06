@@ -2,6 +2,7 @@ import { Env } from "../utils/env";
 import { jsonResponse } from "../utils/response";
 import { getMarketStatus } from "../utils/market-hours";
 import { calculateDisplayQuote } from "../utils/pricing";
+import type { QuoteData } from "../utils/types";
 
 const QUOTE_API = "https://finance.learningis1.st/quote";
 const MAX_SYMBOLS = 100;
@@ -68,7 +69,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 continue;
             }
 
-            const typedData = data as any;
+            const typedData = data as QuoteData;
             const isOvernight = typedData.assetMainType === "EQUITY" ? !!marketStatus.EQUITY_OVERNIGHT : false;
 
             processedData[symbol] = calculateDisplayQuote(typedData, priceType, isOvernight);
